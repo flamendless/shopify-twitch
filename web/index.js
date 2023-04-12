@@ -47,9 +47,14 @@ app.get("/api/gift", async (req, res) => {
 			variant_id
 		);
 
-		const draft_order = await utils.create_draft_order(session, variant.id);
-		// const checkout = await utils.create_checkout(session, variant.id);
-		res.status(200).send({product, variant, draft_order});
+		// const draft_order = await utils.create_draft_order(session, variant.id);
+		const checkout = await utils.create_checkout(session, variant.id);
+		res.status(200).send({
+			// product,
+			// variant,
+			// checkout,
+			checkout_url: checkout.web_url,
+		});
 	}
 	catch (e)
 	{

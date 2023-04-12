@@ -49,8 +49,8 @@ export function ProductsCard() {
     }
   };
 
-	const product_id = 8216105845043;
-	const variant_id = 44829758685491;
+	const product_id = 8215969104179;
+	const variant_id = 44829754556723;
 
 	const handleGift = async () => {
 		setIsLoading(true);

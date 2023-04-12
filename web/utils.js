@@ -8,10 +8,11 @@ class Utils
 
 		product = await shopify.api.rest.Product.find({
 			session: session,
-			id: product_id.toString(),
+			id: product_id,
 		});
-		if (!product)
+		if ((!product) || (!product.published_at))
 			throw "product not found";
+
 
 		if ((!product.variants) || (product.variants?.length == 0))
 			return {product, variant};
@@ -39,7 +40,7 @@ class Utils
 				"quantity": 1
 			}
 		];
-		await checkout.save();
+		await checkout.save({update: true});
 		return checkout;
 	}
 
