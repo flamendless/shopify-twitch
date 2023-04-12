@@ -49,6 +49,32 @@ export function ProductsCard() {
     }
   };
 
+	const product_id = 8216105845043;
+	const variant_id = 44829758685491;
+
+	const handleGift = async () => {
+		setIsLoading(true);
+		const response = await fetch(
+			"/api/gift?" +
+			`product_id=${product_id}&` +
+			`variant_id=${variant_id}`
+		);
+
+		if (response.ok)
+		{
+			await refetchProductCount();
+			setToastProps({ content: "Success" });
+		}
+		else
+		{
+			setIsLoading(false);
+			setToastProps({
+				content: "There was an error in gifting",
+				error: true,
+			});
+		}
+	};
+
   return (
     <>
       {toastMarkup}
@@ -74,6 +100,21 @@ export function ProductsCard() {
               </TextStyle>
             </DisplayText>
           </Heading>
+        </TextContainer>
+      </Card>
+
+      <Card
+        title="Test Gifting"
+        sectioned
+        primaryFooterAction={{
+          content: "gift",
+          onAction: handleGift,
+          loading: isLoading,
+        }}
+      >
+        <TextContainer spacing="loose">
+			<p>product_id: {product_id}</p>
+			<p>variant_id: {variant_id}</p>
         </TextContainer>
       </Card>
     </>
