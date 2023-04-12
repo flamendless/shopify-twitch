@@ -3,7 +3,7 @@ import { shopifyApp } from "@shopify/shopify-app-express";
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
 import { restResources } from "@shopify/shopify-api/rest/admin/2023-04";
 
-// const DB_PATH = `${process.cwd()}/database.sqlite`;
+const DB_PATH = `${process.cwd()}/database.sqlite`;
 
 // The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
 // See the ensureBilling helper to learn more about billing in this template.
@@ -19,13 +19,13 @@ const billingConfig = {
 const shopify = shopifyApp({
 	api: {
 		apiVersion: LATEST_API_VERSION,
+		restResources,
 	},
 	auth: {
 		path: "/api/auth",
 		callbackPath: "/api/auth/callback",
 	},
-	// This should be replaced with your preferred storage strategy
-	// sessionStorage: new SQLiteSessionStorage(DB_PATH),
+	sessionStorage: new SQLiteSessionStorage(DB_PATH),
 });
 
 export default shopify;

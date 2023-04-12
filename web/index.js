@@ -5,7 +5,6 @@ import express from "express";
 import serveStatic from "serve-static";
 
 import shopify from "./shopify.js";
-import { restResources } from "@shopify/shopify-api/rest/admin/2023-04";
 import productCreator from "./product-creator.js";
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
@@ -23,21 +22,7 @@ app.get(
 	shopify.redirectToShopifyOrAppRoot()
 );
 
-app.use(
-	"/api/*",
-	shopify.validateAuthenticatedSession(),
-	async (req, res) => {
-		// const session_id = await shopify.api.session.getCurrentId({
-		// 	rawRequest: req,
-		// 	rawResponse: res,
-		// });
-		// const session = await shopify.config.sessionStorage.loadSession(session_id);
-		// const client = new shopify.api.clients.Rest({session});
-		// shopify.api.clients.Rest = client;
-		// shopify.api.rest = restResources;
-		res.status(200).send({ success: true });
-	}
-);
+app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 

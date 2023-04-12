@@ -38,29 +38,10 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@shopify/network@^1.5.1":
-  version "1.6.4"
-  resolved "https://registry.yarnpkg.com/@shopify/network/-/network-1.6.4.tgz#fdfa8379cb6e06f05ee63d24aafcd6f8e275cb34"
-  integrity sha512-V+//Et386LnYdtNhQ3e33AKYfU25XEt8H5XYeMqPvJZpVvC9Z1lHKQMpmM/zq13VXjPUjt9/sNxHxMP3I6cbJg==
-
 "@shopify/network@^3.2.1":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/@shopify/network/-/network-3.2.1.tgz#c51590bb9ccd177bb7a35c2bad482233198d215b"
   integrity sha512-Ih/6Oe80dynlUsRfEqptWBfsySCqI0rjQvPAjS8HuWeK9nZ+TvmYScfxjucKXZ2deXwAClnU6SMdh3/B1lMMog==
-
-"@shopify/shopify-api@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@shopify/shopify-api/-/shopify-api-6.2.0.tgz#3c37ea5d324cd3b1509df6e49026684f8f6cd966"
-  integrity sha512-f1IexEB7ijeMw0xG1taaO0Z0jQfD/8CVqjecSbVqlSypjBTCliCQ/Wv7yHxsmJbIMjIpRLcOHHbUy5ed+CEVvg==
-  dependencies:
-    "@shopify/network" "^1.5.1"
-    "@types/node-fetch" "^2.5.7"
-    "@types/supertest" "^2.0.10"
-    jose "^4.9.1"
-    node-fetch "^2.6.1"
-    semver "^7.3.8"
-    tslib "^2.0.3"
-    uuid "^9.0.0"
 
 "@shopify/shopify-api@^7.0.0":
   version "7.0.0"
@@ -76,20 +57,20 @@
     tslib "^2.0.3"
     uuid "^9.0.0"
 
-"@shopify/shopify-app-express@^1.1.0":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@shopify/shopify-app-express/-/shopify-app-express-1.2.2.tgz#bad0006e74725936d81bbfc876791eb62b5b957f"
-  integrity sha512-MjMXkOlzOwVCygkxXpP1LZ9o25cJnKp4SIDgEEjPM6Fy2NpO+T5luCO0VCI2/cuPwkTLbl4C1GD8oT8346/NOQ==
+"@shopify/shopify-app-express@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@shopify/shopify-app-express/-/shopify-app-express-2.0.0.tgz#4e42e17c9e1c4214b2642c649678090c36766624"
+  integrity sha512-xWhDC+6XP9XFIz51HLImdGJYuM8aoFDnARZtyhbj0ttDEXBUIoPbsv0ypV622x1GrmQ/gTImyVaTVHZj6axKEg==
   dependencies:
-    "@shopify/shopify-api" "^6.2.0"
-    "@shopify/shopify-app-session-storage" "^1.1.1"
-    "@shopify/shopify-app-session-storage-memory" "^1.0.4"
+    "@shopify/shopify-api" "^7.0.0"
+    "@shopify/shopify-app-session-storage" "^1.1.2"
+    "@shopify/shopify-app-session-storage-memory" "^1.0.5"
     cookie-parser "^1.4.6"
     express "^4.18.1"
-    semver "^7.3.8"
+    semver "^7.4.0"
     tslib "^2.4.0"
 
-"@shopify/shopify-app-session-storage-memory@^1.0.4":
+"@shopify/shopify-app-session-storage-memory@^1.0.5":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@shopify/shopify-app-session-storage-memory/-/shopify-app-session-storage-memory-1.0.5.tgz#9a7a62526d81ea541cc68cf8144135061561920a"
   integrity sha512-jb74BjqCdMd1khYs1dFIFkegY84eFXT7ppFAPLOr+ITRrGJFSYiKVNjpsqE/cdEKa8vJFmW2n1NLFHVfK+8r1w==
@@ -108,7 +89,7 @@
     sqlite3 "^5.1.6"
     tslib "^2.4.0"
 
-"@shopify/shopify-app-session-storage@^1.1.1", "@shopify/shopify-app-session-storage@^1.1.2":
+"@shopify/shopify-app-session-storage@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@shopify/shopify-app-session-storage/-/shopify-app-session-storage-1.1.2.tgz#9e78cf64a6a12bd4eb1484451d4825d8cd3caf7b"
   integrity sha512-VCpWLRFSZMT8QdO17Hl9W9GGWfpmmVC1WBGtiICP9s0Ilc/JSvPREnC29hflGwC/2mq0LoBuIk2mUOMJ57fHKA==
@@ -1453,7 +1434,7 @@ semver@^6.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
 
-semver@^7.3.5, semver@^7.3.8:
+semver@^7.3.5, semver@^7.3.8, semver@^7.4.0:
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.4.0.tgz#8481c92feffc531ab1e012a8ffc15bdd3a0f4318"
   integrity sha512-RgOxM8Mw+7Zus0+zcLEUn8+JfoLpj/huFTItQy2hsM4khuC1HYRDp0cU482Ewn/Fcy6bCjufD8vAj7voC66KQw==
