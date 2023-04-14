@@ -34,7 +34,7 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 app.use(express.json());
 
 app.get("/api/gift", async (req, res) => {
-	const {product_id, variant_id} = req.query;
+	const {product_id, variant_id, username} = req.query;
 	if ((!product_id) || (!variant_id))
 	{
 		res.status(400).send("product_id and variant_id is required");
@@ -57,6 +57,7 @@ app.get("/api/gift", async (req, res) => {
 			// product,
 			// variant,
 			// checkout,
+			username: username,
 			checkout_url: checkout.web_url,
 		});
 	}
