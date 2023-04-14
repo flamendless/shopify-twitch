@@ -80,4 +80,31 @@ export default {
       // }
     },
   },
+
+	CHECKOUTS_UPDATE: {
+		deliveryMethod: DeliveryMethod.Http,
+		callbackUrl: "/api/webhooks",
+		callback: async (topic, shop, body, webhookId) => {
+			const payload = JSON.parse(body);
+			console.log(payload);
+		}
+	},
+
+	PRODUCTS_UPDATE: {
+		deliveryMethod: DeliveryMethod.Http,
+		callbackUrl: "/api/webhooks",
+		callback: async (topic, shop, body, webhookId, api_version) => {
+			const payload = JSON.parse(body);
+			console.log(payload);
+		}
+	},
+
+	ORDERS_CREATE: {
+		deliveryMethod: DeliveryMethod.Http,
+		callbackUrl: "/api/webhooks",
+		callback: async (topic, shop, body, webhookId, api_version) => {
+			const payload = JSON.parse(body);
+			console.log(payload);
+		}
+	},
 };

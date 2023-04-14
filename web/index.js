@@ -6,7 +6,7 @@ import serveStatic from "serve-static";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
-import { error } from "console";
+import GDPRWebhookHandlers from "./gdpr.js";
 import utils from "./utils.js";
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
@@ -23,11 +23,15 @@ app.get(
 	shopify.auth.callback(),
 	shopify.redirectToShopifyOrAppRoot()
 );
+app.post(
+	shopify.config.webhooks.path,
+	shopify.processWebhooks({webhookHandlers: GDPRWebhookHandlers}),
+);
+console.log(shopify.api.webhooks.getTopicsAdded());
 
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
-
 
 app.get("/api/gift", async (req, res) => {
 	const {product_id, variant_id} = req.query;

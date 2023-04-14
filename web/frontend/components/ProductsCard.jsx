@@ -12,6 +12,7 @@ import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 export function ProductsCard() {
   const emptyToastProps = { content: null };
   const [isLoading, setIsLoading] = useState(true);
+	const [checkout_url, set_checkout_url] = useState("");
   const [toastProps, setToastProps] = useState(emptyToastProps);
   const fetch = useAuthenticatedFetch();
 
@@ -53,7 +54,7 @@ export function ProductsCard() {
 	const variant_id = 44829754556723;
 
 	const handleGift = async () => {
-		setIsLoading(true);
+		set_checkout_url("");
 		const response = await fetch(
 			"/api/gift?" +
 			`product_id=${product_id}&` +
@@ -62,12 +63,13 @@ export function ProductsCard() {
 
 		if (response.ok)
 		{
-			await refetchProductCount();
+			const data = await response.json();
+			set_checkout_url(data.checkout_url);
 			setToastProps({ content: "Success" });
 		}
 		else
 		{
-			setIsLoading(false);
+			set_checkout_url("");
 			setToastProps({
 				content: "There was an error in gifting",
 				error: true,
@@ -115,6 +117,9 @@ export function ProductsCard() {
         <TextContainer spacing="loose">
 			<p>product_id: {product_id}</p>
 			<p>variant_id: {variant_id}</p>
+			<a href={checkout_url} target="_blank">
+				checkout_url: {checkout_url}
+			</a>
         </TextContainer>
       </Card>
     </>
