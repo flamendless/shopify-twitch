@@ -1,5 +1,9 @@
 import { DeliveryMethod } from "@shopify/shopify-api";
 
+// import axios from "axios";
+
+function log_topic(topic) { console.log(`webhook received: ${topic}`); }
+
 export default {
 	CUSTOMERS_DATA_REQUEST: {
 		deliveryMethod: DeliveryMethod.Http,
@@ -25,31 +29,11 @@ export default {
 		},
 	},
 
-	CHECKOUTS_CREATE: {
-		deliveryMethod: DeliveryMethod.Http,
-		callbackUrl: "/api/webhooks",
-		callback: async (topic, shop, body, webhook_id) => {
-			console.log(topic);
-			const payload = JSON.parse(body);
-			console.log(payload);
-		}
-	},
-
-	PRODUCTS_UPDATE: {
-		deliveryMethod: DeliveryMethod.Http,
-		callbackUrl: "/api/webhooks",
-		callback: async (topic, shop, body, webhook_id) => {
-			console.log(topic);
-			const payload = JSON.parse(body);
-			console.log(payload);
-		}
-	},
-
 	ORDERS_CREATE: {
 		deliveryMethod: DeliveryMethod.Http,
 		callbackUrl: "/api/webhooks",
 		callback: async (topic, shop, body, webhookId) => {
-			console.log(topic);
+			log_topic(topic);
 			const payload = JSON.parse(body);
 			console.log(payload);
 		}
@@ -59,9 +43,17 @@ export default {
 		deliveryMethod: DeliveryMethod.Http,
 		callbackUrl: "/api/webhooks",
 		callback: async (topic, shop, body, webhookId) => {
-			console.log(topic);
+			log_topic(topic);
 			const payload = JSON.parse(body);
 			console.log(payload);
+
+			// const res = await axios.post(
+			// 	`${process.env.TWITCH_URL}/announcement`,
+			// 	{
+			// 		username: 
+			// 	}
+			// );
+			// console.log(res);
 		}
 	},
 };
