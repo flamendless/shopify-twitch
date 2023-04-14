@@ -117,9 +117,12 @@ export function ProductsCard() {
         <TextContainer spacing="loose">
 			<p>product_id: {product_id}</p>
 			<p>variant_id: {variant_id}</p>
-			<a href={checkout_url} target="_blank">
-				checkout_url: {checkout_url}
-			</a>
+			<p>
+				checkout_url:
+				<a href={checkout_url} target="_blank" style={{paddingLeft: 8 + "px"}}>
+					{checkout_url}
+				</a>
+			</p>
         </TextContainer>
       </Card>
     </>
