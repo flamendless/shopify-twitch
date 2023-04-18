@@ -41,7 +41,7 @@ app.get("/api/gift", async (req, res) => {
 	const {product_id, variant_id, username, channel} = req.query;
 	if ((!product_id) || (!variant_id) || (!username) || (!channel))
 	{
-		res.status(400).send("product_id, variant_id, username, and channel is required");
+		res.status(400).send("product_id, variant_id, username, and channel are required");
 		return
 	}
 
@@ -58,8 +58,8 @@ app.get("/api/gift", async (req, res) => {
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
 		DB.run(
-			"INSERT INTO checkout (token, channel, username, product_id, variant_id) VALUES(?, ?, ?, ?, ?)",
-			[checkout.token, channel, username, product.id, variant.id],
+			"INSERT INTO checkout (token, channel, username, product_id, variant_id, status) VALUES(?, ?, ?, ?, ?, ?)",
+			[checkout.token, channel, username, product.id, variant.id, "NEW"],
 			(err) => {
 				if (!err)
 					return
@@ -79,6 +79,44 @@ app.get("/api/gift", async (req, res) => {
 	catch (e)
 	{
 		console.log(e)
+		res.status(400).send(e);
+	}
+});
+
+app.post("/api/claim", async (req, res) => {
+	const {checkout_token, channel, winner} = req.body;
+	if ((!checkout_token) || (!channel) || (!winner))
+	{
+		res.status(400).send("checkout_token, channel, and winner are required");
+		return
+	}
+
+	try
+	{
+		const data = await new Promise((resolve, reject) => {
+			DB.get(
+				"SELECT token, channel, username, status FROM checkout WHERE token = ? AND status = ?;",
+				[checkout_token, "PAID"],
+				(err, row) => {
+					if (err)
+					{
+						console.log(err);
+						reject();
+					}
+
+					if (row)
+						resolve(row);
+
+					reject(row);
+				}
+			)
+		});
+
+		console.log(winner);
+	}
+	catch (e)
+	{
+		console.log(e);
 		res.status(400).send(e);
 	}
 });
