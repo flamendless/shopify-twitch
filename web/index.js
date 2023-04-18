@@ -3,27 +3,15 @@ import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
-// import sqlite3 from "sqlite3";
-// sqlite3.verbose();
-//
-// const DB = new sqlite3.Database(
-// 	`${process.cwd()}/database.sqlite`,
-// 	sqlite3.OPEN_READWRITE,
-// 	(err) => {
-// 		if (!err)
-// 		{
-// 			console.log("successfully opened sqlite DB");
-// 			return
-// 		}
-// 		console.log(`error with opening sqlite DB: ${err}`);
-// 	}
-// );
-// DB.run("CREATE TABLE IF NOT EXISTS checkout (token TEXT PRIMARY KEY, username TEXT);");
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import GDPRWebhookHandlers from "./gdpr.js";
+import DB from "./db.js";
 import utils from "./utils.js";
+
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
 
@@ -69,16 +57,16 @@ app.get("/api/gift", async (req, res) => {
 
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
-		// DB.run(
-		// 	"INSERT INTO checkout (token, username) VALUES(?, ?)",
-		// 	[checkout.token, username],
-		// 	(err) => {
-		// 		if (!err)
-		// 			return
-		// 		console.log(err);
-		// 		res.status(400).send(err);
-		// 	}
-		// );
+		DB.run(
+			"INSERT INTO checkout (token, username, product_id, variant_id) VALUES(?, ?, ?, ?)",
+			[checkout.token, username, product.id, variant.id],
+			(err) => {
+				if (!err)
+					return
+				console.log(err);
+				res.status(400).send(err);
+			}
+		);
 
 		res.status(200).send({
 			// product,

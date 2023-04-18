@@ -1,4 +1,4 @@
-import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
+import { BillingInterval, LogSeverity, LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
 import { restResources } from "@shopify/shopify-api/rest/admin/2023-04";
@@ -18,6 +18,9 @@ const billingConfig = {
 
 const shopify = shopifyApp({
 	api: {
+		logger: {
+			level: LogSeverity.Debug,
+		},
 		apiVersion: LATEST_API_VERSION,
 		restResources,
 	},

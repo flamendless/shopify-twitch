@@ -56,6 +56,13 @@ class Utils
 		await draft_order.save();
 		return draft_order;
 	}
+
+	static async get_session_from_shop(shop)
+	{
+		const session_id = shopify.api.session.getOfflineId(shop);
+		const session = await shopify.config.sessionStorage.loadSession(session_id);
+		return session
+	}
 }
 
 export default Utils;

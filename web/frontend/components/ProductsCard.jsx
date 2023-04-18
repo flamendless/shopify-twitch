@@ -52,13 +52,15 @@ export function ProductsCard() {
 
 	const product_id = 8215969104179;
 	const variant_id = 44829754556723;
+	const username = "flam";
 
 	const handleGift = async () => {
 		set_checkout_url("");
 		const response = await fetch(
 			"/api/gift?" +
 			`product_id=${product_id}&` +
-			`variant_id=${variant_id}`
+			`variant_id=${variant_id}&` +
+			`username=${username}`
 		);
 
 		if (response.ok)
@@ -117,6 +119,7 @@ export function ProductsCard() {
         <TextContainer spacing="loose">
 			<p>product_id: {product_id}</p>
 			<p>variant_id: {variant_id}</p>
+			<p>username: {username}</p>
 			<p>
 				checkout_url:
 				<a href={checkout_url} target="_blank" style={{paddingLeft: 8 + "px"}}>
