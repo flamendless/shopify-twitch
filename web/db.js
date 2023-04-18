@@ -21,7 +21,8 @@ DB.run(`
 		channel TEXT NOT NULL,
 		username TEXT NOT NULL,
 		product_id INTEGER NOT NULL,
-		variant_id INTEGER NOT NULL
+		variant_id INTEGER NOT NULL,
+		status TEXT NOT NULL
 	);
 `);
 
@@ -29,7 +30,6 @@ DB.run(`
 	CREATE TABLE IF NOT EXISTS webhook
 	(
 		id INTEGER PRIMARY KEY,
-		status TEXT NOT NULL
 	);
 `);
 

@@ -52,7 +52,7 @@ export default {
 
 			const valid = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT status FROM webhook WHERE id = ?;",
+					"SELECT id FROM webhook WHERE id = ?;",
 					[id],
 					(err, row) => {
 						if (err)
@@ -76,8 +76,8 @@ export default {
 				return
 
 			DB.run(
-				"INSERT INTO webhook (id, status) VALUES(?, ?)",
-				[id, "NEW"],
+				"INSERT INTO webhook (id) VALUES(?)",
+				[id],
 				(err) => {
 					if (!err)
 						return
@@ -89,8 +89,8 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT channel, username, product_id, variant_id FROM checkout WHERE token = ?;",
-					token,
+					"SELECT channel, username, product_id, variant_id, status FROM checkout WHERE token = ?;",
+					[token],
 					(err, row) => {
 						if (err)
 						{
@@ -105,7 +105,24 @@ export default {
 			if (!data)
 				return
 
-			const {channel, username, product_id, variant_id} = data;
+			const {channel, username, product_id, variant_id, status} = data;
+
+			if (status == "CLAIMED")
+			{
+				console.log(`${token} was already claimed`);
+				return
+			}
+
+			DB.run(
+				"UPDATE checkout SET status = ? WHERE token = ?",
+				["PAID", token],
+				(err) => {
+					if (!err)
+						return
+					console.log(err);
+				}
+			);
+
 			const session = await utils.get_session_from_shop(shop);
 			const {product, variant} = await utils.get_product_variant(
 				session,
@@ -121,6 +138,7 @@ export default {
 					username: username,
 					product_name: product.name,
 					variant_name: variant.name,
+					checkout_token: token,
 				}
 			);
 			console.log("res", res);
