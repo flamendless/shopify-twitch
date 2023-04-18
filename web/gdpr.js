@@ -89,7 +89,7 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT username, product_id, variant_id FROM checkout WHERE token = ?;",
+					"SELECT channel, username, product_id, variant_id FROM checkout WHERE token = ?;",
 					token,
 					(err, row) => {
 						if (err)
@@ -105,7 +105,7 @@ export default {
 			if (!data)
 				return
 
-			const {username, product_id, variant_id} = data;
+			const {channel, username, product_id, variant_id} = data;
 			const session = await utils.get_session_from_shop(shop);
 			const {product, variant} = await utils.get_product_variant(
 				session,
@@ -117,6 +117,7 @@ export default {
 				`${process.env.TWITCH_URL}/announcement`,
 				{
 					message: "NEW GIVEAWAY",
+					channel: channel,
 					username: username,
 					product_name: product.name,
 					variant_name: variant.name,

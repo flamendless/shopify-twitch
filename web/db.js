@@ -18,6 +18,7 @@ DB.run(`
 	CREATE TABLE IF NOT EXISTS checkout
 	(
 		token TEXT PRIMARY KEY,
+		channel TEXT NOT NULL,
 		username TEXT NOT NULL,
 		product_id INTEGER NOT NULL,
 		variant_id INTEGER NOT NULL
