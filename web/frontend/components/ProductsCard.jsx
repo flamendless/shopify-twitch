@@ -56,12 +56,20 @@ export function ProductsCard() {
 
 	const handleGift = async () => {
 		set_checkout_url("");
-		const response = await fetch(
-			"/api/gift?" +
-			`product_id=${product_id}&` +
-			`variant_id=${variant_id}&` +
-			`username=${username}`
-		);
+
+		const opt = {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify({
+				product_id: product_id,
+				variant_id: variant_id,
+				username: username,
+				channel: "channel",
+				auth_code: "auth_code",
+			})
+		};
+
+		const response = await fetch("/api/gift", opt);
 
 		if (response.ok)
 		{

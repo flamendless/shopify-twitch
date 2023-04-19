@@ -37,11 +37,11 @@ app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
 
-app.get("/api/gift", async (req, res) => {
-	const {product_id, variant_id, username, channel} = req.query;
+app.post("/api/gift", async (req, res) => {
+	const {product_id, variant_id, username, channel, auth_code} = req.body;
 	if ((!product_id) || (!variant_id) || (!username) || (!channel))
 	{
-		res.status(400).send("product_id, variant_id, username, and channel are required");
+		res.status(400).send("product_id, variant_id, username, channel, and auth_code are required");
 		return
 	}
 
@@ -58,8 +58,8 @@ app.get("/api/gift", async (req, res) => {
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
 		DB.run(
-			"INSERT INTO checkout (token, channel, username, product_id, variant_id, status) VALUES(?, ?, ?, ?, ?, ?)",
-			[checkout.token, channel, username, product.id, variant.id, "NEW"],
+			"INSERT INTO checkout (token, channel, username, product_id, variant_id, status, auth_code) VALUES(?, ?, ?, ?, ?, ?, ?)",
+			[checkout.token, channel, username, product.id, variant.id, "NEW", auth_code],
 			(err) => {
 				if (!err)
 					return
@@ -95,8 +95,8 @@ app.post("/api/claim", async (req, res) => {
 	{
 		const data = await new Promise((resolve, reject) => {
 			DB.get(
-				"SELECT token, channel, username, status FROM checkout WHERE token = ? AND status = ?;",
-				[checkout_token, "PAID"],
+				"SELECT token, channel, username, status FROM checkout WHERE token = ? AND status = ? and channel = ?;",
+				[checkout_token, "PAID", channel],
 				(err, row) => {
 					if (err)
 					{

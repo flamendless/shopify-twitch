@@ -89,7 +89,7 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT channel, username, product_id, variant_id, status FROM checkout WHERE token = ?;",
+					"SELECT channel, username, product_id, variant_id, status, auth_code FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
@@ -105,7 +105,7 @@ export default {
 			if (!data)
 				return
 
-			const {channel, username, product_id, variant_id, status} = data;
+			const {channel, username, product_id, variant_id, status, auth_code} = data;
 
 			if (status == "CLAIMED")
 			{
@@ -139,6 +139,7 @@ export default {
 					product_name: product.name,
 					variant_name: variant.name,
 					checkout_token: token,
+					auth_code: auth_code,
 				}
 			);
 			console.log("res", res);

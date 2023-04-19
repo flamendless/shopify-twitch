@@ -22,14 +22,15 @@ DB.run(`
 		username TEXT NOT NULL,
 		product_id INTEGER NOT NULL,
 		variant_id INTEGER NOT NULL,
-		status TEXT NOT NULL
+		status TEXT NOT NULL,
+		auth_code TEXT NOT NULL
 	);
 `);
 
 DB.run(`
 	CREATE TABLE IF NOT EXISTS webhook
 	(
-		id INTEGER PRIMARY KEY,
+		id INTEGER PRIMARY KEY
 	);
 `);
 
