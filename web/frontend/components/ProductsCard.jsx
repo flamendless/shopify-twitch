@@ -13,6 +13,7 @@ export function ProductsCard() {
   const emptyToastProps = { content: null };
   const [isLoading, setIsLoading] = useState(true);
 	const [checkout_url, set_checkout_url] = useState("");
+	const [form_url, set_form_url] = useState("");
   const [toastProps, setToastProps] = useState(emptyToastProps);
   const fetch = useAuthenticatedFetch();
 
@@ -87,6 +88,27 @@ export function ProductsCard() {
 		}
 	};
 
+	const handleForm = async () => {
+		set_form_url("");
+
+		const response = await fetch("/api/form");
+		if (response.ok)
+		{
+			// const data = await response.text();
+			const data = await response.json();
+			set_form_url(data.form_url);
+			setToastProps({ content: "Success" });
+		}
+		else
+		{
+			set_form_url("");
+			setToastProps({
+				content: "There was an error in form",
+				error: true,
+			});
+		}
+	};
+
   return (
     <>
       {toastMarkup}
@@ -132,6 +154,25 @@ export function ProductsCard() {
 				checkout_url:
 				<a href={checkout_url} target="_blank" style={{paddingLeft: 8 + "px"}}>
 					{checkout_url}
+				</a>
+			</p>
+        </TextContainer>
+      </Card>
+
+      <Card
+        title="Test Form"
+        sectioned
+        primaryFooterAction={{
+          content: "form",
+          onAction: handleForm,
+          loading: isLoading,
+        }}
+      >
+        <TextContainer spacing="loose">
+			<p>
+				form_url:
+				<a href={form_url} target="_blank" style={{paddingLeft: 8 + "px"}}>
+					{form_url}
 				</a>
 			</p>
         </TextContainer>

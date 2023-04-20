@@ -1,5 +1,5 @@
 // @ts-check
-import { join } from "path";
+import { join, resolve, dirname } from "path";
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
@@ -20,7 +20,9 @@ const STATIC_PATH = process.env.NODE_ENV === "production"
 	: `${process.cwd()}/frontend/`;
 
 const app = express();
+const __dirname = resolve(dirname(""));
 
+// app.set("view engine", "ejs");
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
 	shopify.config.auth.callbackPath,
@@ -119,6 +121,16 @@ app.post("/api/claim", async (req, res) => {
 		console.log(e);
 		res.status(400).send(e);
 	}
+});
+
+app.get("/api/form", async (req, res) => {
+	const protocol = req.protocol;
+	const host = req.get("host");
+	const url = `${protocol}://${host}/form.html`;
+	const data = {
+		"form_url": url,
+	};
+	res.status(200).send(data);
 });
 
 app.get("/api/products/count", async (_req, res) => {
