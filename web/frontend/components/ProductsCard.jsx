@@ -64,7 +64,7 @@ export function ProductsCard() {
 			body: JSON.stringify({
 				product_id: product_id,
 				variant_id: variant_id,
-				username: username,
+				gifter: username,
 				channel: "channel",
 				auth_code: "auth_code",
 			})
@@ -91,7 +91,7 @@ export function ProductsCard() {
 	const handleForm = async () => {
 		set_form_url("");
 
-		const response = await fetch("/api/form");
+		const response = await fetch("/api/get_form");
 		if (response.ok)
 		{
 			// const data = await response.text();

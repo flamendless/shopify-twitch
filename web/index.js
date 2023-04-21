@@ -22,7 +22,6 @@ const STATIC_PATH = process.env.NODE_ENV === "production"
 const app = express();
 const __dirname = resolve(dirname(""));
 
-// app.set("view engine", "ejs");
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
 	shopify.config.auth.callbackPath,
@@ -35,15 +34,25 @@ app.post(
 );
 console.log(shopify.api.webhooks.getTopicsAdded());
 
-app.use("/api/*", shopify.validateAuthenticatedSession());
+const validation = shopify.validateAuthenticatedSession();
+app.use("/api/*", async (req, res, next) => {
+	if (!((Object.keys(req.params).length == 1) && (req.params[0] == "submit_form")))
+		return validation(req, res, next);
+	next();
+});
 
 app.use(express.json());
 
+app.post("/api/store_twitch", async (req, res) => {
+	const {client_id, login, scopes, user_id, expires_in} = req.query;
+	res.status(200).send();
+});
+
 app.post("/api/gift", async (req, res) => {
-	const {product_id, variant_id, username, channel, auth_code} = req.body;
-	if ((!product_id) || (!variant_id) || (!username) || (!channel))
+	const {product_id, variant_id, gifter, channel, auth_code} = req.body;
+	if ((!product_id) || (!variant_id) || (!gifter) || (!channel))
 	{
-		res.status(400).send("product_id, variant_id, username, channel, and auth_code are required");
+		res.status(400).send("product_id, variant_id, gifter, channel, and auth_code are required");
 		return
 	}
 
@@ -59,9 +68,10 @@ app.post("/api/gift", async (req, res) => {
 
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
+		const shop_id = session.id;
 		DB.run(
-			"INSERT INTO checkout (token, channel, username, product_id, variant_id, status, auth_code) VALUES(?, ?, ?, ?, ?, ?, ?)",
-			[checkout.token, channel, username, product.id, variant.id, "NEW", auth_code],
+			"INSERT INTO checkout (token, shop_id, channel, gifter, product_id, variant_id, status, auth_code) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+			[checkout.token, shop_id, channel, gifter, product.id, variant.id, "NEW", auth_code],
 			(err) => {
 				if (!err)
 					return
@@ -74,7 +84,8 @@ app.post("/api/gift", async (req, res) => {
 			// product,
 			// variant,
 			// checkout,
-			username: username,
+			shop_id: shop_id,
+			gifter: gifter,
 			checkout_url: checkout.web_url,
 		});
 	}
@@ -97,7 +108,7 @@ app.post("/api/claim", async (req, res) => {
 	{
 		const data = await new Promise((resolve, reject) => {
 			DB.get(
-				"SELECT token, channel, username, status FROM checkout WHERE token = ? AND status = ? and channel = ?;",
+				"SELECT token, channel, gifter, status FROM checkout WHERE token = ? AND status = ? AND channel = ?;",
 				[checkout_token, "PAID", channel],
 				(err, row) => {
 					if (err)
@@ -123,38 +134,157 @@ app.post("/api/claim", async (req, res) => {
 	}
 });
 
-app.get("/api/form", async (req, res) => {
+app.post("/api/set_winner", async (req, res) => {
+	const {checkout_token, channel, username} = req.body;
+	if (!checkout_token || !channel || !username)
+	{
+		res.status(400).send({message: "Missing parameter"});
+		return
+	}
+
+	const status = await new Promise((resolve, reject) => {
+		DB.get(
+			"SELECT status FROM winner WHERE checkout_token = ?",
+			[checkout_token],
+			(err, row) => {
+				if (err)
+				{
+					console.log(err);
+					reject();
+				}
+				resolve(row);
+			}
+		)
+	});
+
+	if ((!status) || (status == "CLAIMED"))
+	{
+		res.status(400).send({message: "This has been already claimed"});
+		return
+	}
+
+	const success = await new Promise((resolve, reject) => {
+		DB.serialize(() => {
+			DB.run("BEGIN TRANSACTION");
+			DB.run(
+				"INSERT INTO winner (checkout_token, channel, username, status) VALUES(?, ?, ?, ?)",
+				[checkout_token, channel, username, "UNCLAIMED"],
+				(err, row) => {
+					if (err)
+					{
+						console.log(err);
+						DB.run("ROLLBACK");
+						reject();
+					}
+					resolve(row);
+				}
+			);
+			DB.run("COMMIT");
+		})
+	});
+
+	if (!success)
+	{
+		res.status(500).send({
+			message: "Failed to insert winner in the database. Please try again"
+		});
+		return
+	}
+
+	res.status(200).send({
+		message: "successful",
+		checkout_token: checkout_token,
+		channel: channel,
+		username: username,
+	});
+})
+
+app.get("/api/get_form", async (req, res) => {
+	const {order_id, channel, shop_id} = req.query;
 	const protocol = req.protocol;
 	const host = req.get("host");
-	const url = `${protocol}://${host}/form.html`;
+	const url = `
+		${protocol}://${host}/form.html
+		?order_id=${order_id}&
+		channel=${channel}&
+		shop_id=${shop_id}
+	`;
 	const data = {
 		"form_url": url,
 	};
 	res.status(200).send(data);
 });
 
-app.get("/api/products/count", async (_req, res) => {
-	const countData = await shopify.api.rest.Product.count({
-		session: res.locals.shopify.session,
-	});
-	res.status(200).send(countData);
-});
+app.post("/api/submit_form", async (req, res) => {
+	const data = req.body;
+	const {order_id, channel, shop_id} = data;
 
-app.get("/api/products/create", async (_req, res) => {
-	let status = 200;
-	let error = null;
+	const row_data = await new Promise((resolve, reject) => {
+		DB.get(
+			"SELECT order_id, status, channel FROM checkout WHERE order_id = ? AND channel = ?",
+			[order_id, channel],
+			(err, row) => {
+				if (err)
+				{
+					console.log(err);
+					reject(err);
+				}
+
+				if (row && row.status == "CLAIMED")
+				{
+					console.log(err);
+					reject("Already claimed");
+				}
+
+				resolve(row);
+			}
+		)
+	});
+
+	if (!row_data)
+	{
+		res.status(500).send({message: row_data})
+		return
+	}
+
+	const session = await utils.get_session_from_db(shop_id);
+	const order = await shopify.api.rest.Order.find({
+		session: session,
+		id: order_id,
+	});
+	if (!order)
+	{
+		res.status(400).send({message: "Invalid order id"});
+		return
+	}
+	order.shipping_address = {
+		address1: data.address,
+		address2: data.apartment,
+		city: data.city,
+		country: data.country,
+		first_name: data.first_name,
+		last_name: data.last_name,
+		phone: data.phone,
+		province: data.region,
+		zip: data.postal_code,
+	}
 
 	try
 	{
-		await productCreator(res.locals.shopify.session);
+		await order.save({update: true});
+		res.status(200).send({message: "success"});
 	}
-	catch (e)
+	catch
 	{
-		console.log(`Failed to process products/create: ${e.message}`);
-		status = 500;
-		error = e.message;
+		res.status(500).send({message: "error with updating shipping address"});
 	}
-	res.status(status).send({ success: status === 200, error });
+});
+
+app.get("/api/products/count", async (_req, res) => {
+	// const countData = await shopify.api.rest.Product.count({
+	// 	session: res.locals.shopify.session,
+	// });
+	res.status(200).send({count: 100});
 });
 
 app.use(shopify.cspHeaders());

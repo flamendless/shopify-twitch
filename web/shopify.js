@@ -23,6 +23,7 @@ const shopify = shopifyApp({
 		},
 		apiVersion: LATEST_API_VERSION,
 		restResources,
+		// isCustomStoreApp: true,
 	},
 	auth: {
 		path: "/api/auth",

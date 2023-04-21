@@ -48,12 +48,11 @@ export default {
 		callback: async (topic, shop, body, webhook_id) => {
 			log_topic(topic);
 			const payload = JSON.parse(body);
-			const id = payload.id;
 
 			const valid = await new Promise((resolve, reject) => {
 				DB.get(
 					"SELECT id FROM webhook WHERE id = ?;",
-					[id],
+					[webhook_id],
 					(err, row) => {
 						if (err)
 						{
@@ -63,7 +62,7 @@ export default {
 
 						if (row)
 						{
-							console.log(`webhook ${id} was already processed`);
+							console.log(`webhook ${webhook_id} was already processed`);
 							reject();
 						}
 
@@ -76,8 +75,8 @@ export default {
 				return
 
 			DB.run(
-				"INSERT INTO webhook (id) VALUES(?)",
-				[id],
+				"INSERT INTO webhook (webhook_id) VALUES(?)",
+				[webhook_id],
 				(err) => {
 					if (!err)
 						return
@@ -89,7 +88,7 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT channel, username, product_id, variant_id, status, auth_code FROM checkout WHERE token = ?;",
+					"SELECT channel, gifter, product_id, variant_id, status, auth_code FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
@@ -105,7 +104,7 @@ export default {
 			if (!data)
 				return
 
-			const {channel, username, product_id, variant_id, status, auth_code} = data;
+			const {channel, gifter, product_id, variant_id, status, auth_code} = data;
 
 			if (status == "CLAIMED")
 			{
@@ -113,9 +112,10 @@ export default {
 				return
 			}
 
+			const order_id = payload.id;
 			DB.run(
-				"UPDATE checkout SET status = ? WHERE token = ?",
-				["PAID", token],
+				"UPDATE checkout SET order_id = ?, status = ? WHERE token = ?",
+				[order_id, "PAID", token],
 				(err) => {
 					if (!err)
 						return
@@ -135,10 +135,11 @@ export default {
 				{
 					message: "NEW GIVEAWAY",
 					channel: channel,
-					username: username,
+					gifter: gifter,
 					product_name: product.name,
 					variant_name: variant.name,
 					checkout_token: token,
+					order_id: order_id,
 					auth_code: auth_code,
 				}
 			);

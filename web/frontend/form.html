@@ -4,78 +4,129 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Shipping Address Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
 </head>
+
 <body>
+  <form id="the_form">
     <div class="container p-5 border rounded">
       <h3>Contact</h3>
       <div class="form-floating mb-3">
-        <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
-        <label for="floatingInput">Email address</label>
+        <input required type="email" class="form-control" id="email" placeholder="name@example.com">
+        <label for="email">Email address</label>
       </div>
       <h3>Billing Address</h3>
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingCountry" placeholder="Country">
-        <label for="floatingCountry">Country/Region</label>
+        <input required type="text" class="form-control" id="country" placeholder="Country">
+        <label for="country">Country/Region</label>
       </div>
       <div class="row">
         <div class="col">
           <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="floatingFirstName" placeholder="First Name">
-            <label for="floatingFirstName">First Name</label>
+            <input type="text" class="form-control" id="first_name" placeholder="First Name">
+            <label for="first_name">First Name</label>
           </div>
         </div>
 
         <div class="col">
           <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="floatingLastName" placeholder="Last Name">
-            <label for="floatingLastName">Last Name</label>
+            <input required type="text" class="form-control" id="last_name" placeholder="Last Name">
+            <label for="last_name">Last Name</label>
           </div>
         </div>
       </div>
 
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingAddress" placeholder="Address">
-        <label for="floatingAddress">Address</label>
+        <input required type="text" class="form-control" id="address" placeholder="Address">
+        <label for="address">Address</label>
       </div>
 
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingApartment" placeholder="Apartment, suite, etc. (optional)">
-        <label for="floatingApartment">Apartment, suite, etc. (optional)</label>
+        <input type="text" class="form-control" id="apartment" placeholder="Apartment, suite, etc. (optional)">
+        <label for="apartment">Apartment, suite, etc. (optional)</label>
       </div>
 
       <div class="row">
         <div class="col">
           <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="floatingPostalCode" placeholder="Postal Code">
-            <label for="floatingPostalCode">Postal Code</label>
+            <input required type="text" class="form-control" id="postal_code" placeholder="Postal Code">
+            <label for="postal_code">Postal Code</label>
           </div>
         </div>
 
         <div class="col">
           <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="floatingCity" placeholder="City">
-            <label for="floatingCity">City</label>
+            <input required type="text" class="form-control" id="city" placeholder="City">
+            <label for="city">City</label>
           </div>
         </div>
       </div>
 
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingRegion" placeholder="Region">
-        <label for="floatingRegion">Region</label>
+        <input required type="text" class="form-control" id="region" placeholder="Region">
+        <label for="region">Region</label>
       </div>
 
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="floatingPhone" placeholder="Phone (optional)">
-        <label for="floatingOptional">Phone (optional)</label>
+        <input type="text" class="form-control" id="phone" placeholder="Phone (optional)">
+        <label for="phone">Phone (optional)</label>
       </div>
 
       <button type="submit" class="btn btn-primary mb-3">Submit</button>
-
-
-
     </div>
+  </form>
+
+  <script>
+    function submit_form()
+    {
+      const query = window.location.search;
+      const params = new URLSearchParams(query);
+      const order_id = params.get("order_id");
+      const channel = params.get("channel");
+      const shop_id = params.get("shop_id");
+      if (!order_id || !channel || !shop_id)
+      {
+        alert("Invalid form");
+        return
+      }
+
+      const form = document.getElementById("the_form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault()
+
+        const formData = {
+          order_id: order_id,
+          channel: channel,
+          shop_id: shop_id,
+
+          address: document.getElementById("address").value,
+          apartment: document.getElementById("apartment").value,
+          city: document.getElementById("city").value,
+          country: document.getElementById("country").value,
+          email: document.getElementById("email").value,
+          first_name: document.getElementById("first_name").value,
+          last_name: document.getElementById("last_name").value,
+          phone: document.getElementById("phone").value,
+          postal_code: document.getElementById("postal_code").value,
+          region: document.getElementById("region").value,
+        }
+
+        const xhr = new XMLHttpRequest()
+        xhr.open("POST", "/api/submit_form")
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText)
+            console.log(response)
+          }
+        }
+        xhr.send(JSON.stringify(formData))
+      });
+    }
+
+    submit_form();
+  </script>
 </body>
 </html>

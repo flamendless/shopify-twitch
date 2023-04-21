@@ -18,12 +18,24 @@ DB.run(`
 	CREATE TABLE IF NOT EXISTS checkout
 	(
 		token TEXT PRIMARY KEY,
+		shop_id TEXT NOT NULL,
+		order_id INTEGER,
 		channel TEXT NOT NULL,
-		username TEXT NOT NULL,
+		gifter TEXT NOT NULL,
 		product_id INTEGER NOT NULL,
 		variant_id INTEGER NOT NULL,
 		status TEXT NOT NULL,
 		auth_code TEXT NOT NULL
+	);
+`);
+
+DB.run(`
+	CREATE TABLE IF NOT EXISTS winner
+	(
+		checkout_token TEXT PRIMARY KEY,
+		channel TEXT NOT NULL,
+		username TEXT NOT NULL,
+		status TEXT NOT NULL
 	);
 `);
 
