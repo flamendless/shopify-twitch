@@ -40,6 +40,8 @@ app.use("/api/*", async (req, res, next) => {
 		(Object.keys(req.params).length == 1) &&
 		(
 			(req.params[0] == "submit_form") ||
+			(req.params[0] == "submit_form/") ||
+			(req.params[0] == "gift") ||
 			(req.params[0] == "gift/")
 		)
 	))
@@ -75,16 +77,37 @@ app.use("/api/*", async (req, res, next) => {
 
 app.use(express.json());
 
-app.post("/api/store_twitch", async (req, res) => {
-	const {client_id, login, scopes, user_id, expires_in} = req.query;
-	res.status(200).send();
+app.post("/api/twitch_auth", async (req, res) => {
+	const {channel, auth_code} = req.query;
+
+	const result = await new Promise((resolve, reject) => {
+		DB.run(
+			"INSERT INTO twitch (channel, auth_code) VALUES(?, ?)",
+			[channel, auth_code],
+			(err) => {
+				if (!err)
+					resolve(true);
+
+				console.log(err);
+				reject();
+			}
+		)
+	});
+
+	if (!result)
+	{
+		res.status(400).send({message: "Failed to store twitch credentials"});
+		return
+	}
+
+	res.status(200).send({message: "success"});
 });
 
 app.post("/api/gift", async (req, res) => {
-	const {variant_id, gifter, channel, auth_code} = req.body;
-	if ((!variant_id) || (!gifter) || (!channel))
+	const {variant_id, gifter} = req.body;
+	if ((!variant_id) || (!gifter))
 	{
-		res.status(400).send("variant_id, gifter, channel, and auth_code are required");
+		res.status(400).send("variant_id,  are required");
 		return
 	}
 
@@ -94,8 +117,8 @@ app.post("/api/gift", async (req, res) => {
 		const session = await utils.get_session_from_db_by_name(shop_name);
 		if (!session)
 		{
-		res.status(400).send("invalid session");
-		return
+			res.status(400).send("invalid session");
+			return
 		}
 
 		const variant = await utils.get_variant(
@@ -107,8 +130,8 @@ app.post("/api/gift", async (req, res) => {
 		const checkout = await utils.create_checkout(session, variant.id);
 		const shop_id = session.id;
 		DB.run(
-			"INSERT INTO checkout (token, shop_id, channel, gifter, variant_id, status, auth_code) VALUES(?, ?, ?, ?, ?, ?, ?)",
-			[checkout.token, shop_id, channel, gifter, variant.id, "NEW", auth_code],
+			"INSERT INTO checkout (token, shop_id, gifter, variant_id, status) VALUES(?, ?, ?, ?, ?)",
+			[checkout.token, shop_id, gifter, variant.id, "NEW"],
 			(err) => {
 				if (!err)
 					return
@@ -118,9 +141,6 @@ app.post("/api/gift", async (req, res) => {
 		);
 
 		res.status(200).send({
-			// product,
-			// variant,
-			// checkout,
 			shop_id: shop_id,
 			gifter: gifter,
 			checkout_url: checkout.web_url,

@@ -1,2 +1,2 @@
-export { ProductsCard } from "./ProductsCard";
+export { TwitchCard } from "./TwitchCard";
 export * from "./providers";

@@ -20,10 +20,16 @@ DB.run(`
 		token TEXT PRIMARY KEY,
 		shop_id TEXT NOT NULL,
 		order_id INTEGER,
-		channel TEXT NOT NULL,
 		gifter TEXT NOT NULL,
 		variant_id INTEGER NOT NULL,
-		status TEXT NOT NULL,
+		status TEXT NOT NULL
+	);
+`);
+
+DB.run(`
+	CREATE TABLE IF NOT EXISTS twitch
+	(
+		channel TEXT PRIMARY KEY,
 		auth_code TEXT NOT NULL
 	);
 `);

@@ -1,14 +1,5 @@
-function main()
+function setup_product_page()
 {
-	const pathname = window.location.pathname;
-	const paths = pathname.split("/");
-
-	if (!((paths.length >= 1) && (paths[1] == "products")))
-	{
-		console.warn("Can't add custom button. Product page path is unhandled");
-		return
-	}
-
 	const product_forms = document.querySelectorAll("product-form");
 	if (product_forms.length == 0)
 	{
@@ -51,6 +42,19 @@ function main()
 		return
 	}
 
+	const input = document.createElement("input");
+	input.id = "input_username";
+	input.required = true;
+	input.placeholder = "<username>";
+	input.type = "text";
+	input.style.textAlign = "center";
+	input.style.display = "none";
+	input.style.width = "100%";
+	input.style.height = "4rem";
+	input.style.marginTop = "4rem";
+	form.appendChild(input);
+
+	let processing = false
 
 	const button = document.createElement("button");
 	button.textContent = "Gift Now";
@@ -64,12 +68,29 @@ function main()
 	button.onclick = async function(e)
 	{
 		e.preventDefault();
+
+		if (processing)
+			return
+
+		if (input.style.display == "none")
+		{
+			input.style.display = "block";
+			return
+		}
+
+		if (!input.value)
+		{
+			input.reportValidity();
+			return
+		}
+
 		const data = {
 			"variant_id": variant_id,
-			"gifter": "test",
-			"channel": "channel",
-			"auth_code": "auth_code",
+			"gifter": input.value,
 		};
+		processing = true
+		button.textContent = "...";
+
 		const response = await fetch(`https://${hostname}/api/gift/${search}`, {
 			method: "POST",
 			headers: {
@@ -86,11 +107,28 @@ function main()
 		}
 		else
 		{
+			processing = false;
+			button.textContent = "Gift Now";
 			console.log(response);
 		}
 	}
 
 	form.appendChild(button);
+}
+
+function main()
+{
+	const pathname = window.location.pathname;
+	const paths = pathname.split("/");
+
+	if (paths.length == 0)
+		return
+
+	if (paths[1] == "products")
+		setup_product_page();
+
+	// else if (paths[1] == "checkouts")
+	// 	console.log(1111);
 }
 
 main()
