@@ -51,7 +51,6 @@ export function ProductsCard() {
     }
   };
 
-	const product_id = 8215969104179;
 	const variant_id = 44829754556723;
 	const username = "flam";
 
@@ -62,7 +61,6 @@ export function ProductsCard() {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify({
-				product_id: product_id,
 				variant_id: variant_id,
 				gifter: username,
 				channel: "channel",
@@ -147,7 +145,6 @@ export function ProductsCard() {
         }}
       >
         <TextContainer spacing="loose">
-			<p>product_id: {product_id}</p>
 			<p>variant_id: {variant_id}</p>
 			<p>username: {username}</p>
 			<p>

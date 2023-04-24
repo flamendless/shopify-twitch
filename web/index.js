@@ -36,8 +36,40 @@ console.log(shopify.api.webhooks.getTopicsAdded());
 
 const validation = shopify.validateAuthenticatedSession();
 app.use("/api/*", async (req, res, next) => {
-	if (!((Object.keys(req.params).length == 1) && (req.params[0] == "submit_form")))
-		return validation(req, res, next);
+	if (!(
+		(Object.keys(req.params).length == 1) &&
+		(
+			(req.params[0] == "submit_form") ||
+			(req.params[0] == "gift/")
+		)
+	))
+	{
+		await validation(req, res, next);
+
+		try
+		{
+			const host = req.get("host");
+
+			const session = res.locals.shopify.session;
+			const tags = await shopify.api.rest.ScriptTag.all({session: session});
+
+			for (let i = 0; i < tags.data.length; i++)
+			{
+				await tags.data[i].delete();
+			}
+
+			const sc = new shopify.api.rest.ScriptTag({session: session});
+			sc.src = `https://${host}/custom_button.js`;
+			sc.event = "onload";
+			await sc.save({update: true});
+		}
+		catch (e)
+		{
+			console.log("Can't add button to Online Store", e);
+		}
+		return
+	}
+
 	next();
 });
 
@@ -49,20 +81,25 @@ app.post("/api/store_twitch", async (req, res) => {
 });
 
 app.post("/api/gift", async (req, res) => {
-	const {product_id, variant_id, gifter, channel, auth_code} = req.body;
-	if ((!product_id) || (!variant_id) || (!gifter) || (!channel))
+	const {variant_id, gifter, channel, auth_code} = req.body;
+	if ((!variant_id) || (!gifter) || (!channel))
 	{
-		res.status(400).send("product_id, variant_id, gifter, channel, and auth_code are required");
+		res.status(400).send("variant_id, gifter, channel, and auth_code are required");
 		return
 	}
 
 	try
 	{
-		const session = res.locals.shopify.session;
+		const shop_name = req.query.shop;
+		const session = await utils.get_session_from_db_by_name(shop_name);
+		if (!session)
+		{
+		res.status(400).send("invalid session");
+		return
+		}
 
-		const {product, variant} = await utils.get_product_variant(
+		const variant = await utils.get_variant(
 			session,
-			product_id,
 			variant_id
 		);
 
@@ -70,8 +107,8 @@ app.post("/api/gift", async (req, res) => {
 		const checkout = await utils.create_checkout(session, variant.id);
 		const shop_id = session.id;
 		DB.run(
-			"INSERT INTO checkout (token, shop_id, channel, gifter, product_id, variant_id, status, auth_code) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-			[checkout.token, shop_id, channel, gifter, product.id, variant.id, "NEW", auth_code],
+			"INSERT INTO checkout (token, shop_id, channel, gifter, variant_id, status, auth_code) VALUES(?, ?, ?, ?, ?, ?, ?)",
+			[checkout.token, shop_id, channel, gifter, variant.id, "NEW", auth_code],
 			(err) => {
 				if (!err)
 					return

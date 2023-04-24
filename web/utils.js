@@ -123,33 +123,16 @@ import DB from "./db.js";
 
 class Utils
 {
-	static async get_product_variant(session, product_id, variant_id)
+	static async get_variant(session, variant_id)
 	{
-		let product, variant;
-
-		product = await shopify.api.rest.Product.find({
+		const variant = await shopify.api.rest.Variant.find({
 			session: session,
-			id: product_id,
+			id: variant_id,
 		});
-		if ((!product) || (!product.published_at))
-			throw "product not found";
-
-
-		if ((!product.variants) || (product.variants?.length == 0))
-			return {product, variant};
-
-		for (const e of product.variants)
-		{
-			if (e.id == variant_id)
-			{
-				variant = e;
-				break
-			}
-		}
 		if (!variant)
 			throw "variant not found";
 
-		return {product, variant};
+		return variant;
 	}
 
 	static async create_checkout(session, variant_id)
@@ -216,6 +199,35 @@ class Utils
 		// const session_id = shopify.api.session.getOfflineId(row.shop);
 		// const session = await shopify.config.sessionStorage.loadSession(session_id);
 		return session
+	}
+
+	static async get_session_from_db_by_name(shop_name)
+	{
+		const row = await new Promise((resolve, reject) => {
+			DB.get(
+				"SELECT * from shopify_sessions WHERE shop = ?",
+				[shop_name],
+				(err, row) => {
+					if (err)
+					{
+						console.log(err);
+						reject();
+					}
+					resolve(row);
+				}
+			)
+		});
+
+		const session_data = {
+			id: row.id,
+			shop: row.shop,
+			state: row.state,
+			isOnline: row.isOnline == 1 ? true : false,
+			scope: row.scope,
+			accessToken: row.accessToken,
+		};
+
+		return this.get_session_from_shop(row.shop);
 	}
 }
 

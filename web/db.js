@@ -22,7 +22,6 @@ DB.run(`
 		order_id INTEGER,
 		channel TEXT NOT NULL,
 		gifter TEXT NOT NULL,
-		product_id INTEGER NOT NULL,
 		variant_id INTEGER NOT NULL,
 		status TEXT NOT NULL,
 		auth_code TEXT NOT NULL

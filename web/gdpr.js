@@ -88,7 +88,7 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT channel, gifter, product_id, variant_id, status, auth_code FROM checkout WHERE token = ?;",
+					"SELECT channel, gifter, variant_id, status, auth_code FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
@@ -104,7 +104,7 @@ export default {
 			if (!data)
 				return
 
-			const {channel, gifter, product_id, variant_id, status, auth_code} = data;
+			const {channel, gifter, variant_id, status, auth_code} = data;
 
 			if (status == "CLAIMED")
 			{
@@ -124,9 +124,8 @@ export default {
 			);
 
 			const session = await utils.get_session_from_shop(shop);
-			const {product, variant} = await utils.get_product_variant(
+			const variant = await utils.get_variant(
 				session,
-				product_id,
 				variant_id
 			);
 
@@ -136,7 +135,6 @@ export default {
 					message: "NEW GIVEAWAY",
 					channel: channel,
 					gifter: gifter,
-					product_name: product.name,
 					variant_name: variant.name,
 					checkout_token: token,
 					order_id: order_id,
