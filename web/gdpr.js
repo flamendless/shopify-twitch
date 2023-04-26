@@ -88,7 +88,7 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT channel, gifter, variant_id, status, auth_code FROM checkout WHERE token = ?;",
+					"SELECT shop_id, gifter, variant_id, status FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
@@ -104,9 +104,9 @@ export default {
 			if (!data)
 				return
 
-			const {channel, gifter, variant_id, status, auth_code} = data;
+			const {shop_id, gifter, variant_id, status} = data;
 
-			if (status == "CLAIMED")
+			if (status != "NEW")
 			{
 				console.log(`${token} was already claimed`);
 				return
@@ -133,12 +133,11 @@ export default {
 				`${process.env.TWITCH_URL}/announcement`,
 				{
 					message: "NEW GIVEAWAY",
-					channel: channel,
+					shop_id: shop_id,
 					gifter: gifter,
 					variant_name: variant.name,
 					checkout_token: token,
 					order_id: order_id,
-					auth_code: auth_code,
 				}
 			);
 			console.log("res", res);

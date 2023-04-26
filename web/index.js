@@ -13,6 +13,8 @@ import utils from "./utils.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 
+import axios from "axios";
+
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
 
 const STATIC_PATH = process.env.NODE_ENV === "production"
@@ -101,6 +103,31 @@ app.post("/api/twitch_auth", async (req, res) => {
 	}
 
 	res.status(200).send({message: "success"});
+});
+
+app.post("/api/twitch_setup", async (req, res) => {
+	const {channel_name, username, store} = req.body;
+	await axios({
+		method: "GET",
+		url: "http://localhost:3000/api/setup",
+		params: {
+			channel: channel_name,
+			username: username,
+			store: store,
+		}
+	}).then(async function (response)
+		{
+			console.log("sent request auth");
+			console.log(response.data);
+			res.send(200).send(response.data);
+		}
+	).catch(function(err)
+		{
+			console.log("failed sending request auth");
+			console.log(err.response.data);
+			res.send(400).send(err.response.data);
+		}
+	);
 });
 
 app.post("/api/gift", async (req, res) => {

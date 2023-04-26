@@ -41,25 +41,49 @@ export function TwitchCard() {
 		const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=9egbqe7dfh8hb291qvxmhykqamhu29&redirect_uri=http://localhost:3000/join&scope=chat%3Aread%20chat%3Aedit%20moderator%3Amanage%3Aannouncements%20user%3Aread%3Abroadcast%20moderation%3Aread&state=${channel_name}`;
 		window.open(url, "_blank");
 
-		await axios({
-			method: "GET",
-			url: "http://localhost:3000/api/setup",
-			params: {
-				channel: channel_name,
+		const opt = {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify({
+				channel_name: channel_name,
 				username: username,
 				store: store,
-			}
-		}).then(async function (res)
-			{
-				console.log("sent request auth");
-				console.log(res.data);
-			}
-		).catch(function(err)
-			{
-				console.log("failed sending request auth");
-				console.log(err.response.data);
-			}
-		);
+			})
+		};
+		const res = await fetch("/api/twitch_setup", opt);
+		if (res.ok)
+		{
+			const data = await res.json();
+			console.log(data);
+			setToastProps({ content: "Success" });
+		}
+		else
+		{
+			setToastProps({
+				content: "There was an error in auth",
+				error: true,
+			});
+		}
+
+		// await axios({
+		// 	method: "GET",
+		// 	url: "http://localhost:3000/api/setup",
+		// 	params: {
+		// 		channel: channel_name,
+		// 		username: username,
+		// 		store: store,
+		// 	}
+		// }).then(async function (res)
+		// 	{
+		// 		console.log("sent request auth");
+		// 		console.log(res.data);
+		// 	}
+		// ).catch(function(err)
+		// 	{
+		// 		console.log("failed sending request auth");
+		// 		console.log(err.response.data);
+		// 	}
+		// );
 	};
 
   return (
