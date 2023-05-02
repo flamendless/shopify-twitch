@@ -119,13 +119,13 @@ app.post("/api/twitch_setup", async (req, res) => {
 		{
 			console.log("sent request auth");
 			console.log(response.data);
-			res.send(200).send(response.data);
+			res.status(200).send(response.data);
 		}
 	).catch(function(err)
 		{
 			console.log("failed sending request auth");
-			console.log(err.response.data);
-			res.send(400).send(err.response.data);
+			console.log(err);
+			res.status(400).send({error: err});
 		}
 	);
 });

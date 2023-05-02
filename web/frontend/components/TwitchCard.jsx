@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import {
-  Card,
-  TextContainer,
+	Card,
+	TextContainer,
+	TextField,
 } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
