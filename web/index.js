@@ -3,6 +3,7 @@ import { join, resolve, dirname } from "path";
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
+import cors from "cors";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
@@ -35,6 +36,8 @@ app.post(
 	shopify.processWebhooks({webhookHandlers: GDPRWebhookHandlers}),
 );
 console.log(shopify.api.webhooks.getTopicsAdded());
+
+app.use(cors());
 
 const validation = shopify.validateAuthenticatedSession();
 app.use("/api/*", async (req, res, next) => {
