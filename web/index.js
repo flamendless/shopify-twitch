@@ -46,7 +46,7 @@ const skip_routes = [
 	"submit_form",
 	"gift",
 	"twitch_setup",
-  "twitch_auth",
+	"twitch_auth",
 ]
 
 function check_skip(param)
@@ -133,7 +133,7 @@ app.post("/api/twitch_setup", async (req, res) => {
 	// res.status(200).send({success:"success"})
 
 	const {channel_name, username, store, state} = req.body;
-	
+
 	// const sessionToken = res.locals.shopify.session;
 	const sessionToken = await utils.get_session_from_db_by_name(store);
 	console.log(sessionToken?.accessToken)

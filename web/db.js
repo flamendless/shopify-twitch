@@ -30,7 +30,8 @@ DB.run(`
 	CREATE TABLE IF NOT EXISTS twitch
 	(
 		channel TEXT PRIMARY KEY,
-		auth_code TEXT NOT NULL
+		auth_code TEXT NOT NULL,
+		state TEXT NOT NULL
 	);
 `);
 
