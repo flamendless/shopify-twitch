@@ -46,7 +46,7 @@ const skip_routes = [
 	"submit_form",
 	"gift",
 	"twitch_setup",
-  "twitch_auth",
+	"twitch_auth",
 ]
 
 function check_skip(param)
