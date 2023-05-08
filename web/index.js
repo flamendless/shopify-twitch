@@ -108,7 +108,7 @@ app.post("/api/twitch_auth", async (req, res) => {
 
 	const result = await new Promise((resolve, reject) => {
 		DB.run(
-			"INSERT INTO twitch (channel, auth_code, state) VALUES(?, ?)",
+			"INSERT INTO twitch (channel, auth_code, state) VALUES(?, ?, ?)",
 			[channel, auth_code, state],
 			(err) => {
 				if (!err)
@@ -135,8 +135,8 @@ app.post("/api/twitch_setup", async (req, res) => {
 	const {channel_name, username, store, state} = req.body;
 	
 	// const sessionToken = res.locals.shopify.session;
-	const shop_name = req.query.shop;
-	const sessionToken = await utils.get_session_from_db_by_name(shop_name);
+	const sessionToken = await utils.get_session_from_db_by_name(store);
+	console.log(sessionToken?.accessToken)
 	try {
 
 		const host = req.get("host");
@@ -150,7 +150,7 @@ app.post("/api/twitch_setup", async (req, res) => {
 				store: store,
 				host:host,
 				state: state,
-				session:sessionToken
+				session:sessionToken?.accessToken
 			}
 		}).then(async function (response)
 			{

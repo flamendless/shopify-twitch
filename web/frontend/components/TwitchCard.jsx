@@ -59,8 +59,9 @@ export function TwitchCard() {
 			console.log(data);
 			setToastProps({ content: "Success" });
 			// const redirect_uri = "https://twitch-dmdn.onrender.com"
-			const redirect_uri = "http://localhost:3000"
-			const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=9egbqe7dfh8hb291qvxmhykqamhu29&redirect_uri=${redirect_uri}/api/join&scope=chat%3Aread%20chat%3Aedit%20moderator%3Amanage%3Aannouncements%20user%3Aread%3Abroadcast%20moderation%3Aread&state=${state}`;
+			// const redirect_uri = "http://localhost:3000"
+			// const url = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=9egbqe7dfh8hb291qvxmhykqamhu29&redirect_uri=${redirect_uri}/api/join&scope=chat%3Aread%20chat%3Aedit%20moderator%3Amanage%3Aannouncements%20user%3Aread%3Abroadcast%20moderation%3Aread&state=${state}`;
+			const url = res.link
 			window.open(url, "_blank");
 		}
 		else
