@@ -17,6 +17,8 @@ dotenv.config();
 import axios from "axios";
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
+const TWITCH_SERVER = 'http://localhost:3000';
+// const TWITCH_SERVER = 'https://twitch-dmdn.onrender.com';
 
 const STATIC_PATH = process.env.NODE_ENV === "production"
 	? `${process.cwd()}/frontend/dist`
@@ -24,6 +26,7 @@ const STATIC_PATH = process.env.NODE_ENV === "production"
 
 const app = express();
 const __dirname = resolve(dirname(""));
+var sessionToken = null
 
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -43,6 +46,7 @@ const skip_routes = [
 	"submit_form",
 	"gift",
 	"twitch_setup",
+  "twitch_auth",
 ]
 
 function check_skip(param)
@@ -98,12 +102,14 @@ app.use("/api/*", async (req, res, next) => {
 app.use(express.json());
 
 app.post("/api/twitch_auth", async (req, res) => {
-	const {channel, auth_code} = req.query;
+	const {channel, auth_code, state} = req.query;
+
+	console.log(req.query)
 
 	const result = await new Promise((resolve, reject) => {
 		DB.run(
-			"INSERT INTO twitch (channel, auth_code) VALUES(?, ?)",
-			[channel, auth_code],
+			"INSERT INTO twitch (channel, auth_code, state) VALUES(?, ?)",
+			[channel, auth_code, state],
 			(err) => {
 				if (!err)
 					resolve(true);
@@ -124,28 +130,44 @@ app.post("/api/twitch_auth", async (req, res) => {
 });
 
 app.post("/api/twitch_setup", async (req, res) => {
-	const {channel_name, username, store} = req.body;
-	await axios({
-		method: "GET",
-		url: "http://localhost:3000/api/setup",
-		params: {
-			channel: channel_name,
-			username: username,
-			store: store,
-		}
-	}).then(async function (response)
-		{
-			console.log("sent request auth");
-			console.log(response.data);
-			res.status(200).send(response.data);
-		}
-	).catch(function(err)
-		{
-			console.log("failed sending request auth");
-			console.log(err);
-			res.status(400).send({error: err});
-		}
-	);
+	// res.status(200).send({success:"success"})
+
+	const {channel_name, username, store, state} = req.body;
+	
+	// const sessionToken = res.locals.shopify.session;
+	const shop_name = req.query.shop;
+	const sessionToken = await utils.get_session_from_db_by_name(shop_name);
+	try {
+
+		const host = req.get("host");
+
+		await axios({
+			method: "GET",
+			url: `${TWITCH_SERVER}/api/auth`,
+			params: {
+				username: username,
+				channel: channel_name,
+				store: store,
+				host:host,
+				state: state,
+				session:sessionToken
+			}
+		}).then(async function (response)
+			{
+				console.log("sent request auth");
+				console.log(response.data);
+				res.status(200).send(response.data);
+			}
+		).catch(function(err)
+			{
+				console.log("failed sending request auth");
+				console.log(err);
+				res.status(400).send({error: err});
+			}
+		);
+	}catch(err){
+		res.status(400).send({error:err})
+	}
 });
 
 app.post("/api/gift", async (req, res) => {
