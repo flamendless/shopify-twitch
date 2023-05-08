@@ -104,7 +104,27 @@ app.use(express.json());
 app.post("/api/twitch_auth", async (req, res) => {
 	const {channel, auth_code, state} = req.query;
 
-	console.log(req.query)
+	const exists = await new Promise((resolve, reject) => {
+		DB.get(
+			"SELECT id FROM twitch WHERE channel = ?;",
+			[channel],
+			(err, row) => {
+				if (err)
+				{
+					console.log(err);
+					reject();
+				}
+
+				resolve(row);
+			}
+		)
+	});
+
+	if (exists)
+	{
+		res.status(200).send({message: `channel ${channel} was already registered`});
+		return
+	}
 
 	const result = await new Promise((resolve, reject) => {
 		DB.run(
