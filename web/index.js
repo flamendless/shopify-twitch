@@ -64,36 +64,42 @@ function check_skip(param)
 
 const validation = shopify.validateAuthenticatedSession();
 app.use("/api/*", async (req, res, next) => {
+	console.log("before if api")
+	try
+	{
+		const host = req.get("host");
+
+		const shop_name = req.query.shop;
+		const session = await utils.get_session_from_db_by_name(shop_name);
+		const tags = await shopify.api.rest.ScriptTag.all({session: session});
+		console.log("tags")
+		// console.log(tags)
+
+		for (let i = 0; i < tags.data.length; i++)
+		{
+			await tags.data[i].delete();
+		}
+
+		console.log("adding button")
+
+		const sc = new shopify.api.rest.ScriptTag({session: session});
+		sc.src = `https://${host}/custom_button.js`;
+		sc.event = "onload";
+		await sc.save({update: true});
+	}
+	catch (e)
+	{
+		console.log("Can't add button to Online Store", e);
+	}
 	if (!(
 		(Object.keys(req.params).length == 1) &&
 		(check_skip(req.params[0]))
 	))
 	{
+		console.log("before validation")
 		await validation(req, res, next);
-
-		try
-		{
-			const host = req.get("host");
-
-			const shop_name = req.query.shop;
-			const session = await utils.get_session_from_db_by_name(shop_name);
-			const tags = await shopify.api.rest.ScriptTag.all({session: session});
-			console.log(tags)
-
-			for (let i = 0; i < tags.data.length; i++)
-			{
-				await tags.data[i].delete();
-			}
-
-			const sc = new shopify.api.rest.ScriptTag({session: session});
-			sc.src = `https://${host}/custom_button.js`;
-			sc.event = "onload";
-			await sc.save({update: true});
-		}
-		catch (e)
-		{
-			console.log("Can't add button to Online Store", e);
-		}
+		console.log("validating")
+		
 		return
 	}
 
@@ -115,7 +121,7 @@ app.post("/api/twitch_auth", async (req, res) => {
 					console.log(err);
 					reject();
 				}
-
+				console.log(row)
 				resolve(row);
 			}
 		)
@@ -123,7 +129,23 @@ app.post("/api/twitch_auth", async (req, res) => {
 
 	if (exists)
 	{
-		res.status(200).send({message: `channel ${channel} was already registered`});
+		const update = await new Promise((resolve, reject) => {
+			DB.run(
+				"UPDATE twitch SET auth_code = ? , state = ? WHERE channel = ?  ",
+				[auth_code, state,channel],
+				(err) => {
+					if (!err)
+						resolve(true);
+	
+					console.log(err);
+					reject();
+				}
+			)
+		});
+		console.log("update twitch")
+		console.log(update)
+		res.status(200).send({message: `updated channel ${channel} ${update}`});
+		// res.status(200).send({message: `channel ${channel} was already registered`});
 		return
 	}
 
