@@ -106,7 +106,7 @@ app.post("/api/twitch_auth", async (req, res) => {
 
 	const exists = await new Promise((resolve, reject) => {
 		DB.get(
-			"SELECT id FROM twitch WHERE channel = ?;",
+			"SELECT channel FROM twitch WHERE channel = ?;",
 			[channel],
 			(err, row) => {
 				if (err)
