@@ -39,18 +39,30 @@ console.log(shopify.api.webhooks.getTopicsAdded());
 
 app.use(cors());
 
+const skip_routes = [
+	"submit_form",
+	"gift",
+	"twitch_setup",
+]
+
+function check_skip(param)
+{
+	for (let i = 0; i < skip_routes.length; i++)
+	{
+		if (
+			(param == skip_routes[i]) ||
+			(param == skip_routes[i] + "/")
+		)
+			return true
+	}
+	return false
+}
+
 const validation = shopify.validateAuthenticatedSession();
 app.use("/api/*", async (req, res, next) => {
 	if (!(
 		(Object.keys(req.params).length == 1) &&
-		(
-			(req.params[0] == "submit_form") ||
-			(req.params[0] == "submit_form/") ||
-			(req.params[0] == "gift") ||
-			(req.params[0] == "gift/") ||
-			(req.params[0] == "twitch_setup") ||
-			(req.params[0] == "twitch_setup/")
-		)
+		(check_skip(req.params[0]))
 	))
 	{
 		await validation(req, res, next);
