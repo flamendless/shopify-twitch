@@ -64,10 +64,8 @@ app.use("/api/*", async (req, res, next) => {
 		{
 			const host = req.get("host");
 
-			// const session = res.locals.shopify.session;
 			const shop_name = req.query.shop;
 			const session = await utils.get_session_from_db_by_name(shop_name);
-			
 			const tags = await shopify.api.rest.ScriptTag.all({session: session});
 
 			for (let i = 0; i < tags.data.length; i++)
