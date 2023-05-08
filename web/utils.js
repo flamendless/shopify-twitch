@@ -218,14 +218,20 @@ class Utils
 			)
 		});
 
-		const session_data = {
-			id: row.id,
-			shop: row.shop,
-			state: row.state,
-			isOnline: row.isOnline == 1 ? true : false,
-			scope: row.scope,
-			accessToken: row.accessToken,
-		};
+		if (!row)
+		{
+			console.log(`no shop ${shop_name} found in database`);
+			return
+		}
+
+		// const session_data = {
+		// 	id: row.id,
+		// 	shop: row.shop,
+		// 	state: row.state,
+		// 	isOnline: row.isOnline == 1 ? true : false,
+		// 	scope: row.scope,
+		// 	accessToken: row.accessToken,
+		// };
 
 		return this.get_session_from_shop(row.shop);
 	}
