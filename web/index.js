@@ -102,9 +102,9 @@ app.use("/api/*", async (req, res, next) => {
 app.use(express.json());
 
 app.post("/api/twitch_auth", async (req, res) => {
-	const {channel, auth_code, state} = req.query;
-
-	console.log(req.query)
+	const {channel, auth_code, state} = req.body;
+	console.log("twitch Auth")
+	console.log(req.body)
 
 	const result = await new Promise((resolve, reject) => {
 		DB.run(
