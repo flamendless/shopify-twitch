@@ -75,7 +75,7 @@ export default {
 				return
 
 			DB.run(
-				"INSERT INTO webhook (webhook_id) VALUES(?)",
+				"INSERT INTO webhook (id) VALUES(?)",
 				[webhook_id],
 				(err) => {
 					if (!err)
@@ -129,15 +129,35 @@ export default {
 				variant_id
 			);
 
-			const res = await axios.post(
-				`${process.env.TWITCH_URL}/announcement`,
+			//get state and access_token
+			const data_set = await new Promise((resolve, reject) => {
+				DB.get(
+					"SELECT auth_code, state FROM twitch LIMIT = 1",
+					[token],
+					(err, row) => {
+						if (err)
+						{
+							console.log(`${token} is invalid`);
+							reject();
+						}
+						resolve(row);
+					}
+				);
+			});
+
+			console.log("announcing give away")
+			console.log(data_set)
+			const res = await axios.get(
+				`http://localhost:3000/api/announce-giveaway`,
 				{
 					message: "NEW GIVEAWAY",
 					shop_id: shop_id,
 					gifter: gifter,
-					variant_name: variant.name,
+					product: variant.name,
 					checkout_token: token,
 					order_id: order_id,
+					state:data_set.state,
+					access_token:data_set.auth_code
 				}
 			);
 			console.log("res", res);
