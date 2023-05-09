@@ -40,8 +40,6 @@ export function TwitchCard() {
 		const state = [...Array(30)].map(() => Math.random().toString(36)[2]).join('')
 		const store = new URL(window.location).searchParams.get("shop")
 
-		
-
 		const opt = {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
@@ -87,7 +85,7 @@ export function TwitchCard() {
         }}
       >
 		<TextContainer spacing="loose">
-			
+
 
 			<TextField
 				label="Channel name"
@@ -102,7 +100,7 @@ export function TwitchCard() {
 				onChange={handle_change_username}
 				autoComplete="off"
 			/>
-			
+
 		</TextContainer>
       </Card>
     </>

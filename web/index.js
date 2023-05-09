@@ -49,31 +49,14 @@ const skip_routes = [
 	"twitch_auth",
 ]
 
-function check_skip(param)
+async function add_custom_button(req)
 {
-	for (let i = 0; i < skip_routes.length; i++)
-	{
-		if (
-			(param == skip_routes[i]) ||
-			(param == skip_routes[i] + "/")
-		)
-			return true
-	}
-	return false
-}
-
-const validation = shopify.validateAuthenticatedSession();
-app.use("/api/*", async (req, res, next) => {
-	console.log("before if api")
 	try
 	{
 		const host = req.get("host");
-
 		const shop_name = req.query.shop;
 		const session = await utils.get_session_from_db_by_name(shop_name);
 		const tags = await shopify.api.rest.ScriptTag.all({session: session});
-		console.log("tags")
-		// console.log(tags)
 
 		for (let i = 0; i < tags.data.length; i++)
 		{
@@ -89,17 +72,33 @@ app.use("/api/*", async (req, res, next) => {
 	}
 	catch (e)
 	{
-		console.log("Can't add button to Online Store", e);
+		console.error("Can't add custom button to Online Store", e);
 	}
+}
+
+function check_skip(param)
+{
+	for (let i = 0; i < skip_routes.length; i++)
+	{
+		if (
+			(param == skip_routes[i]) ||
+			(param == skip_routes[i] + "/")
+		)
+			return true
+	}
+	return false
+}
+
+const validation = shopify.validateAuthenticatedSession();
+app.use("/api/*", async (req, res, next) => {
+	await add_custom_button(req);
+
 	if (!(
 		(Object.keys(req.params).length == 1) &&
 		(check_skip(req.params[0]))
 	))
 	{
-		console.log("before validation")
 		await validation(req, res, next);
-		console.log("validating")
-		
 		return
 	}
 
@@ -131,12 +130,12 @@ app.post("/api/twitch_auth", async (req, res) => {
 	{
 		const update = await new Promise((resolve, reject) => {
 			DB.run(
-				"UPDATE twitch SET auth_code = ? , state = ? WHERE channel = ?  ",
-				[auth_code, state,channel],
+				"UPDATE twitch SET auth_code = ?, state = ? WHERE channel = ?;",
+				[auth_code, state, channel],
 				(err) => {
 					if (!err)
 						resolve(true);
-	
+
 					console.log(err);
 					reject();
 				}
@@ -178,8 +177,8 @@ app.post("/api/twitch_setup", async (req, res) => {
 	const {channel_name, username, store, state} = req.body;
 
 	// const sessionToken = res.locals.shopify.session;
-	const sessionToken = await utils.get_session_from_db_by_name(store);
-	console.log(sessionToken?.accessToken)
+	const session_token = await utils.get_session_from_db_by_name(store);
+	console.log(session_token?.accessToken)
 	try {
 
 		const host = req.get("host");
@@ -193,7 +192,7 @@ app.post("/api/twitch_setup", async (req, res) => {
 				store: store,
 				host:host,
 				state: state,
-				session:sessionToken?.accessToken
+				session:session_token?.accessToken
 			}
 		}).then(async function (response)
 			{
@@ -208,7 +207,9 @@ app.post("/api/twitch_setup", async (req, res) => {
 				res.status(400).send({error: err});
 			}
 		);
-	}catch(err){
+	}
+	catch(err)
+	{
 		res.status(400).send({error:err})
 	}
 });
