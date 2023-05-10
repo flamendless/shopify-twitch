@@ -48,7 +48,7 @@ DB.run(`
 DB.run(`
 	CREATE TABLE IF NOT EXISTS webhook
 	(
-		id INTEGER PRIMARY KEY
+		id TEXT PRIMARY KEY
 	);
 `);
 
