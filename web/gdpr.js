@@ -132,7 +132,7 @@ export default {
 			//get state and access_token
 			const data_set = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT auth_code, state FROM twitch LIMIT = 1;",
+					"SELECT auth_code, state FROM twitch LIMIT 1;",
 					[],
 					(err, row) => {
 						if (err)
