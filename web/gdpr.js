@@ -74,6 +74,7 @@ export default {
 			if (!valid)
 				return
 
+			console.log("inserting")
 			DB.run(
 				"INSERT INTO webhook (id) VALUES(?)",
 				[webhook_id],
@@ -123,12 +124,15 @@ export default {
 				}
 			);
 
-			const session = await utils.get_session_from_shop(shop);
+			console.log("getting shop name in orderpaid webhook")
+			const shop_name = shop;
+			const session = await utils.get_session_from_shop(shop_name);
 			const variant = await utils.get_variant(
 				session,
 				variant_id
 			);
 
+			console.log("getting auth and state")
 			//get state and access_token
 			const data_set = await new Promise((resolve, reject) => {
 				DB.get(
@@ -137,7 +141,7 @@ export default {
 					(err, row) => {
 						if (err)
 						{
-							console.log(`${token} is invalid`);
+							console.log(`auth code and state failed to retrieve`);
 							reject();
 						}
 						resolve(row);
@@ -150,7 +154,6 @@ export default {
 			const res = await axios.get(
 				`http://localhost:3000/api/announce-giveaway`,
 				{
-					message: "NEW GIVEAWAY",
 					shop_id: shop_id,
 					gifter: gifter,
 					product: variant.name,
