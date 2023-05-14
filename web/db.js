@@ -22,7 +22,8 @@ DB.run(`
 		order_id INTEGER,
 		gifter TEXT NOT NULL,
 		variant_id INTEGER NOT NULL,
-		status TEXT NOT NULL
+		status TEXT NOT NULL,
+		channel TEXT NOT NULL
 	);
 `);
 
@@ -31,7 +32,8 @@ DB.run(`
 	(
 		channel TEXT PRIMARY KEY,
 		auth_code TEXT NOT NULL,
-		state TEXT NOT NULL
+		state TEXT NOT NULL,
+		shop TEXT NOT NULL
 	);
 `);
 

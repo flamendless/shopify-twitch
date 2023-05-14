@@ -88,7 +88,7 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT shop_id, gifter, variant_id, status FROM checkout WHERE token = ?;",
+					"SELECT shop_id, gifter, variant_id, status, checkout, channel FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
@@ -104,7 +104,7 @@ export default {
 			if (!data)
 				return
 
-			const {shop_id, gifter, variant_id, status} = data;
+			const {shop_id, gifter, variant_id, status, channel} = data;
 
 			if (status != "NEW")
 			{
@@ -132,12 +132,12 @@ export default {
 			//get state and access_token
 			const data_set = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT auth_code, state FROM twitch LIMIT 1;",
-					[],
+					"SELECT auth_code, state, channel FROM twitch WHERE channel = ?;",
+					[channel],
 					(err, row) => {
 						if (err)
 						{
-							console.log(`${token} is invalid`);
+							console.error(`${token} is invalid`);
 							reject();
 						}
 						resolve(row);

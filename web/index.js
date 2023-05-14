@@ -15,6 +15,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import axios from "axios";
+import { channel } from "diagnostics_channel";
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
 const TWITCH_SERVER = 'http://localhost:3000';
@@ -49,13 +50,12 @@ const skip_routes = [
 	"twitch_auth",
 ]
 
-async function add_custom_button(req)
+async function add_custom_button(req, res)
 {
+	console.log("adding custom button");
 	try
 	{
-		const host = req.get("host");
-		const shop_name = req.query.shop;
-		const session = await utils.get_session_from_db_by_name(shop_name);
+		const session = res.locals.shopify.session;
 		const tags = await shopify.api.rest.ScriptTag.all({session: session});
 
 		for (let i = 0; i < tags.data.length; i++)
@@ -66,6 +66,7 @@ async function add_custom_button(req)
 		console.log("adding button")
 
 		const sc = new shopify.api.rest.ScriptTag({session: session});
+		const host = req.get("host");
 		sc.src = `https://${host}/custom_button.js`;
 		sc.event = "onload";
 		await sc.save({update: true});
@@ -91,8 +92,6 @@ function check_skip(param)
 
 const validation = shopify.validateAuthenticatedSession();
 app.use("/api/*", async (req, res, next) => {
-	await add_custom_button(req);
-
 	if (!(
 		(Object.keys(req.params).length == 1) &&
 		(check_skip(req.params[0]))
@@ -103,6 +102,11 @@ app.use("/api/*", async (req, res, next) => {
 	}
 
 	next();
+});
+
+app.get("/api/register_custom_button", async (req, res) => {
+	await add_custom_button(req, res);
+	res.status(200).send("success");
 });
 
 app.use(express.json());
@@ -150,13 +154,13 @@ app.post("/api/twitch_auth", async (req, res) => {
 
 	const result = await new Promise((resolve, reject) => {
 		DB.run(
-			"INSERT INTO twitch (channel, auth_code, state) VALUES(?, ?, ?)",
-			[channel, auth_code, state],
+			"UPDATE TABLE twitch SET auth_code = ?, state = ? WHERE channel = ?;",
+			[auth_code, state, channel],
 			(err) => {
 				if (!err)
 					resolve(true);
 
-				console.log(err);
+				console.error(err);
 				reject();
 			}
 		)
@@ -198,6 +202,23 @@ app.post("/api/twitch_setup", async (req, res) => {
 			{
 				console.log("sent request auth");
 				console.log(response.data);
+
+				await Promise((resolve, reject) => {
+					DB.run(
+						"INSERT INTO twitch (channel, shop) VALUES(?, ?);",
+						[channel_name, store],
+						(err) => {
+							if (err)
+							{
+								console.error(err);
+								reject();
+							}
+							resolve();
+						}
+					);
+				});
+
+
 				res.status(200).send(response.data);
 			}
 		).catch(function(err)
@@ -218,7 +239,7 @@ app.post("/api/gift", async (req, res) => {
 	const {variant_id, gifter} = req.body;
 	if ((!variant_id) || (!gifter))
 	{
-		res.status(400).send("variant_id,  are required");
+		res.status(400).send("variant_id,  gifter, and shop are required");
 		return
 	}
 
@@ -232,6 +253,32 @@ app.post("/api/gift", async (req, res) => {
 			return
 		}
 
+		const twitch_data = await new Promise((resolve, reject) => {
+			DB.get(
+				"SELECT * FROM twitch where shop = ?;",
+				[shop_name],
+				(err, row) => {
+					if (err)
+					{
+						console.error(err);
+						reject();
+					}
+					if (!row.channel)
+					{
+						console.error(`${shop_name} is not valid`);
+						reject();
+					}
+					resolve(row);
+				}
+			)
+		});
+
+		if (!twitch_data)
+		{
+			res.status(400).send("invalid channel");
+			return
+		}
+
 		const variant = await utils.get_variant(
 			session,
 			variant_id
@@ -240,9 +287,10 @@ app.post("/api/gift", async (req, res) => {
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
 		const shop_id = session.id;
+		const {channel} = twitch_data.channel;
 		DB.run(
-			"INSERT INTO checkout (token, shop_id, gifter, variant_id, status) VALUES(?, ?, ?, ?, ?)",
-			[checkout.token, shop_id, gifter, variant.id, "NEW"],
+			"INSERT INTO checkout (token, shop_id, gifter, variant_id, status, channel) VALUES(?, ?, ?, ?, ?, ?)",
+			[checkout.token, shop_id, gifter, variant.id, "NEW", channel],
 			(err) => {
 				if (!err)
 					return
@@ -281,7 +329,7 @@ app.post("/api/claim", async (req, res) => {
 				(err, row) => {
 					if (err)
 					{
-						console.log(err);
+						console.error(err);
 						reject();
 					}
 
