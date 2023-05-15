@@ -158,6 +158,7 @@ export default {
 					order_id: order_id,
 					state: data_set.state,
 					access_token: data_set.auth_code,
+					channel: channel,
 				}
 			);
 			console.log("res", res);
