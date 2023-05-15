@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
 	Card,
 	TextContainer,
@@ -16,21 +16,17 @@ export function TwitchCard() {
 	const [toastProps, setToastProps] = useState(emptyToastProps);
 	const fetch = useAuthenticatedFetch();
 
-	// const {
-	// 	data,
-	// 	isRefetching: isRefetchingCount,
-	// } = useAppQuery({
-	// 	url: "/api/products/count",
-	// 	reactQueryOptions: {
-	// 		onSuccess: () => {
-	// 			set_is_loading(false);
-	// 		},
-	// 	},
-	// });
-
 	const toastMarkup = toastProps.content && (
 		<Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
 	);
+
+	useEffect(async () => {
+		const res = await fetch("/api/register_custom_button");
+		if (res.ok)
+			console.log(res);
+		else
+			console.error(res);
+	});
 
 	// const handle_change = (e) => { set_channel_name(e.target.value); }
 	const handle_change_channel = useCallback((new_value) => set_channel_name(new_value), []);
@@ -47,7 +43,7 @@ export function TwitchCard() {
 				channel_name: channel_name,
 				username: username,
 				store: store,
-				state:state
+				state: state,
 			})
 		};
 		const res = await fetch("/api/twitch_setup", opt);
