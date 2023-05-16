@@ -74,6 +74,7 @@ export default {
 			if (!valid)
 				return
 
+			console.log("inserting")
 			DB.run(
 				"INSERT INTO webhook (id) VALUES(?)",
 				[webhook_id],
@@ -88,12 +89,12 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT shop_id, gifter, variant_id, status, checkout, channel FROM checkout WHERE token = ?;",
+					"SELECT shop_id, gifter, variant_id, status, channel FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
 						{
-							console.log(`${token} is invalid`);
+							console.log(`${token} is invalid ${err}`);
 							reject();
 						}
 						resolve(row);
@@ -101,8 +102,10 @@ export default {
 				);
 			});
 
-			if (!data)
+			if (!data){
+				console.log("no data")
 				return
+			}
 
 			const {shop_id, gifter, variant_id, status, channel} = data;
 
@@ -123,13 +126,16 @@ export default {
 				}
 			);
 
-			const session = await utils.get_session_from_shop(shop);
+			console.log("getting shop name in orderpaid webhook")
+			const shop_name = shop;
+			const session = await utils.get_session_from_shop(shop_name);
 			const variant = await utils.get_variant(
 				session,
 				variant_id
 			);
 			const product = await utils.get_product(session, variant.product_id);
 
+			console.log("getting auth and state")
 			//get state and access_token
 			const data_set = await new Promise((resolve, reject) => {
 				DB.get(
@@ -148,10 +154,10 @@ export default {
 
 			console.log("announcing give away")
 			console.log(data_set)
-			const res = await axios.get(
-				`http://localhost:3000/api/announce-giveaway`,
-				{
-					message: "NEW GIVEAWAY",
+			const res = await axios({
+				method: 'get',
+				url:`http://localhost:3000/api/announce-giveaway`,
+				params:{
 					shop_id: shop_id,
 					gifter: gifter,
 					product_name: product.title,
@@ -162,7 +168,7 @@ export default {
 					access_token: data_set.auth_code,
 					channel: channel,
 				}
-			);
+			});
 			console.log("res", res);
 		}
 	},
