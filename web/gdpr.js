@@ -128,6 +128,7 @@ export default {
 				session,
 				variant_id
 			);
+			const product = await utils.get_product(session, variant.product_id);
 
 			//get state and access_token
 			const data_set = await new Promise((resolve, reject) => {
@@ -153,7 +154,8 @@ export default {
 					message: "NEW GIVEAWAY",
 					shop_id: shop_id,
 					gifter: gifter,
-					product: variant.name,
+					product_name: product.title,
+					variant_name: variant.title,
 					checkout_token: token,
 					order_id: order_id,
 					state: data_set.state,

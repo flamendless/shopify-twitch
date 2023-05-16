@@ -135,6 +135,18 @@ class Utils
 		return variant;
 	}
 
+	static async get_product(session, product_id)
+	{
+		const product = await shopify.api.rest.Product.find({
+			session: session,
+			id: product_id,
+		});
+		if (!product)
+			throw "product not found";
+
+		return product;
+	}
+
 	static async create_checkout(session, variant_id)
 	{
 		const checkout = new shopify.api.rest.Checkout({session: session});
