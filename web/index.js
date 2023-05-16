@@ -124,7 +124,7 @@ app.post("/api/twitch_auth", async (req, res) => {
 					console.log(err);
 					reject();
 				}
-				console.log(row)
+				console.log("row:"+row)
 				resolve(row);
 			}
 		)
@@ -203,7 +203,7 @@ app.post("/api/twitch_setup", async (req, res) => {
 				console.log("sent request auth");
 				console.log(response.data);
 
-				await Promise((resolve, reject) => {
+				await new Promise((resolve, reject) => {
 					DB.run(
 						"INSERT INTO twitch (channel, shop) VALUES(?, ?);",
 						[channel_name, store],
@@ -213,7 +213,7 @@ app.post("/api/twitch_setup", async (req, res) => {
 								console.error(err);
 								reject();
 							}
-							resolve();
+							resolve(true);
 						}
 					);
 				});
@@ -287,7 +287,7 @@ app.post("/api/gift", async (req, res) => {
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
 		const shop_id = session.id;
-		const {channel} = twitch_data.channel;
+		const channel = twitch_data.channel;
 		DB.run(
 			"INSERT INTO checkout (token, shop_id, gifter, variant_id, status, channel) VALUES(?, ?, ?, ?, ?, ?)",
 			[checkout.token, shop_id, gifter, variant.id, "NEW", channel],

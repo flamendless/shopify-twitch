@@ -89,12 +89,12 @@ export default {
 
 			const data = await new Promise((resolve, reject) => {
 				DB.get(
-					"SELECT shop_id, gifter, variant_id, status, checkout, channel FROM checkout WHERE token = ?;",
+					"SELECT shop_id, gifter, variant_id, status, channel FROM checkout WHERE token = ?;",
 					[token],
 					(err, row) => {
 						if (err)
 						{
-							console.log(`${token} is invalid`);
+							console.log(`${token} is invalid ${err}`);
 							reject();
 						}
 						resolve(row);
@@ -102,8 +102,10 @@ export default {
 				);
 			});
 
-			if (!data)
+			if (!data){
+				console.log("no data")
 				return
+			}
 
 			const {shop_id, gifter, variant_id, status, channel} = data;
 
@@ -151,19 +153,20 @@ export default {
 
 			console.log("announcing give away")
 			console.log(data_set)
-			const res = await axios.get(
-				`http://localhost:3000/api/announce-giveaway`,
-				{
+			const res = await axios({
+				method: 'get',
+				url:`http://localhost:3000/api/announce-giveaway`,
+				params:{
 					shop_id: shop_id,
 					gifter: gifter,
-					product: variant.name,
+					product: variant.title,
 					checkout_token: token,
 					order_id: order_id,
 					state: data_set.state,
 					access_token: data_set.auth_code,
 					channel: channel,
 				}
-			);
+			});
 			console.log("res", res);
 		}
 	},
