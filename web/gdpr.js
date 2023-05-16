@@ -133,6 +133,7 @@ export default {
 				session,
 				variant_id
 			);
+			const product = await utils.get_product(session, variant.product_id);
 
 			console.log("getting auth and state")
 			//get state and access_token
@@ -159,7 +160,8 @@ export default {
 				params:{
 					shop_id: shop_id,
 					gifter: gifter,
-					product: variant.title,
+					product_name: product.title,
+					variant_name: variant.title,
 					checkout_token: token,
 					order_id: order_id,
 					state: data_set.state,
