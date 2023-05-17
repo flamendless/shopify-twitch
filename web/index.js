@@ -48,6 +48,7 @@ const skip_routes = [
 	"gift",
 	"twitch_setup",
 	"twitch_auth",
+	"get_form",
 ]
 
 async function add_custom_button(req, res)
