@@ -49,6 +49,8 @@ export default {
 			log_topic(topic);
 			const payload = JSON.parse(body);
 
+			console.log("order apaid")
+
 			const valid = await new Promise((resolve, reject) => {
 				DB.get(
 					"SELECT id FROM webhook WHERE id = ?;",

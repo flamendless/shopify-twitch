@@ -203,20 +203,86 @@ app.post("/api/twitch_setup", async (req, res) => {
 				console.log("sent request auth");
 				console.log(response.data);
 
-				await new Promise((resolve, reject) => {
-					DB.run(
-						"INSERT INTO twitch (channel, shop) VALUES(?, ?);",
-						[channel_name, store],
-						(err) => {
+				// await new Promise((resolve, reject) => {
+				// 	DB.run(
+				// 		"INSERT INTO twitch (channel, shop) VALUES(?, ?);",
+				// 		[channel_name, store],
+				// 		(err) => {
+				// 			if (err)
+				// 			{
+				// 				console.error(err);
+				// 				reject();
+				// 			}
+				// 			resolve(true);
+				// 		}
+				// 	);
+				// });
+
+				
+				// res.status(200).send(response.data);
+
+				// return
+
+				console.log("check if exist")
+
+				const exists = await new Promise((resolve, reject) => {
+					DB.get(
+						"SELECT * FROM twitch WHERE channel = ?;",
+						[channel_name],
+						(err, row) => {
 							if (err)
 							{
-								console.error(err);
+								console.log(err);
 								reject();
 							}
-							resolve(true);
+							console.log("row:"+row)
+							resolve(row);
 						}
-					);
+					)
 				});
+				
+			
+				if (exists)
+				{
+					console.log("updating twitch shop")
+
+					await new Promise((resolve, reject) => {
+						DB.run(
+							"UPDATE twitch SET shop = ? WHERE channel = ?;",
+							[channel_name, store],
+							(err) => {
+								if (err)
+								{
+									console.log("failed updating twitch shop")
+									console.error(err);
+									reject();
+								}
+								resolve(true);
+							}
+						);
+					});
+
+				}else{
+					console.log("inserting twitch shop")
+					await new Promise((resolve, reject) => {
+						DB.run(
+							"INSERT INTO twitch (channel, shop) VALUES(?, ?);",
+							[channel_name, store],
+							(err) => {
+								if (err)
+								{
+									console.error(err);
+									reject();
+								}
+								resolve(true);
+							}
+						);
+					});
+
+				}
+
+
+
 
 
 				res.status(200).send(response.data);
@@ -237,6 +303,9 @@ app.post("/api/twitch_setup", async (req, res) => {
 
 app.post("/api/gift", async (req, res) => {
 	const {variant_id, gifter} = req.body;
+
+	console.log("calling gift")
+
 	if ((!variant_id) || (!gifter))
 	{
 		res.status(400).send("variant_id,  gifter, and shop are required");
@@ -275,6 +344,7 @@ app.post("/api/gift", async (req, res) => {
 
 		if (!twitch_data)
 		{
+			console.log("failed gift")
 			res.status(400).send("invalid channel");
 			return
 		}
@@ -283,6 +353,8 @@ app.post("/api/gift", async (req, res) => {
 			session,
 			variant_id
 		);
+
+		console.log("getting gift")
 
 		// const draft_order = await utils.create_draft_order(session, variant.id);
 		const checkout = await utils.create_checkout(session, variant.id);
@@ -415,8 +487,8 @@ app.post("/api/set_winner", async (req, res) => {
 	});
 })
 
-app.get("/api/get_form", async (req, res) => {
-	const {order_id, channel, shop_id} = req.query;
+app.post("/api/get_form", async (req, res) => {
+	const {order_id, channel, shop_id} = req.body;
 	const protocol = req.protocol;
 	const host = req.get("host");
 	const url = `
@@ -425,10 +497,9 @@ app.get("/api/get_form", async (req, res) => {
 		channel=${channel}&
 		shop_id=${shop_id}
 	`;
-	const data = {
-		"form_url": url,
-	};
-	res.status(200).send(data);
+	res.status(200).send({
+		form_url: url
+	});
 });
 
 app.post("/api/submit_form", async (req, res) => {
