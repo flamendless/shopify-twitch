@@ -492,12 +492,7 @@ app.post("/api/get_form", async (req, res) => {
 	const {order_id, channel, shop_id} = req.body;
 	const protocol = req.protocol;
 	const host = req.get("host");
-	const url = `
-		${protocol}://${host}/form.html
-		?order_id=${order_id}&
-		channel=${channel}&
-		shop_id=${shop_id}
-	`;
+	const url = `${protocol}://${host}/form.html?order_id=${order_id}&channel=${channel}&shop_id=${shop_id}`;
 	res.status(200).send({
 		form_url: url
 	});

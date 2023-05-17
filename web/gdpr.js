@@ -49,7 +49,7 @@ export default {
 			log_topic(topic);
 			const payload = JSON.parse(body);
 
-			console.log("order apaid")
+			console.log("order paying")
 
 			const valid = await new Promise((resolve, reject) => {
 				DB.get(
