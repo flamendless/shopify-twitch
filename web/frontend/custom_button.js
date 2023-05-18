@@ -91,6 +91,8 @@ function setup_product_page()
 		processing = true
 		button.textContent = "...";
 
+		console.log("button clicked")
+
 		const response = await fetch(`https://${hostname}/api/gift/${search}`, {
 			method: "POST",
 			headers: {
