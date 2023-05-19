@@ -424,7 +424,7 @@ app.post("/api/claim", async (req, res) => {
 });
 
 app.post("/api/set_winner", async (req, res) => {
-	const {checkout_token, channel, username} = req.body;
+	const {checkout_token, channel, username, order_id, shop_id} = req.body;
 	if (!checkout_token || !channel || !username)
 	{
 		res.status(400).send({message: "Missing parameter"});
@@ -456,8 +456,8 @@ app.post("/api/set_winner", async (req, res) => {
 		DB.serialize(() => {
 			DB.run("BEGIN TRANSACTION");
 			DB.run(
-				"INSERT INTO winner (checkout_token, channel, username, status) VALUES(?, ?, ?, ?)",
-				[checkout_token, channel, username, "UNCLAIMED"],
+				"INSERT INTO winner (checkout_token, channel, username, status, order_id, shop_id) VALUES(?, ?, ?, ?, ?, ?)",
+				[checkout_token, channel, username, "UNCLAIMED", order_id, shop_id],
 				(err, row) => {
 					if (err)
 					{
@@ -489,10 +489,44 @@ app.post("/api/set_winner", async (req, res) => {
 })
 
 app.post("/api/get_form", async (req, res) => {
-	const {order_id, channel, shop_id} = req.body;
+	// const {order_id, channel, shop_id, access_token} = req.body;
+	const {access_token} = req.body;
+
+	let user
+	await axios({
+		method: "GET",
+		url: `https://id.twitch.tv/oauth2/validate`,
+        headers: {
+            'Authorization': 'OAuth '+access_token,
+        }
+	}).then(async function (response){
+		console.log("validating winner");
+		//get user
+		user = response.data.login
+	}).catch(async function(error){
+		console.log(error)
+		res.status(400).send(error)
+	})
+
+	//get orderid,channel and shopid for winner by username
+	const row_data = await new Promise((resolve, reject) => {
+		DB.get(
+			"SELECT * FROM winner WHERE username = ?",
+			[user],
+			(err, row) => {
+				if (err)
+				{
+					console.log(err);
+					reject();
+				}
+				resolve(row);
+			}
+		)
+	});
+
 	const protocol = req.protocol;
 	const host = req.get("host");
-	const url = `${protocol}://${host}/form.html?order_id=${order_id}&channel=${channel}&shop_id=${shop_id}`;
+	const url = `${protocol}://${host}/form.html?order_id=${row_data.order_id}&channel=${row_data.channel}&shop_id=${row_data.shop_id}&access_token=${access_token}`;
 	res.status(200).send({
 		form_url: url
 	});

@@ -43,7 +43,9 @@ DB.run(`
 		checkout_token TEXT PRIMARY KEY,
 		channel TEXT,
 		username TEXT NOT NULL,
-		status TEXT NOT NULL
+		status TEXT NOT NULL,
+		order_id TEXT,
+		shop_id TEXT
 	);
 `);
 
