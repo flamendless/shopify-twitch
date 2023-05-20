@@ -83,10 +83,8 @@
     {
       const query = window.location.search;
       const params = new URLSearchParams(query);
-      const order_id = params.get("order_id");
-      const channel = params.get("channel");
-      const shop_id = params.get("shop_id");
-      if (!order_id || !channel || !shop_id)
+      const data = params.get("data");
+      if (!data)
       {
         alert("Invalid form");
         return
@@ -97,9 +95,7 @@
         event.preventDefault()
 
         const formData = {
-          order_id: order_id,
-          channel: channel,
-          shop_id: shop_id,
+          data: data,
 
           address: document.getElementById("address").value,
           apartment: document.getElementById("apartment").value,
