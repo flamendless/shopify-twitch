@@ -4,7 +4,6 @@ import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
 import cors from "cors";
-import crypto from "crypto";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
@@ -30,7 +29,6 @@ const STATIC_PATH = process.env.NODE_ENV === "production"
 const app = express();
 const __dirname = resolve(dirname(""));
 var sessionToken = null
-const IV = crypto.randomBytes(32);
 
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -530,10 +528,8 @@ app.post("/api/get_form", async (req, res) => {
 	const protocol = req.protocol;
 	const host = req.get("host");
 	const params = `order_id=${row_data.order_id}&channel=${row_data.channel}&shop_id=${row_data.shop_id}&access_token=${access_token}`;
-	const cipher = crypto.createCipheriv(process.env.ALGO, process.env.SECRET, IV);
-	const enc = Buffer.concat([cipher.update(params), cipher.final()]);
-	const final_param = enc.toString("hex");
-	const url = `${protocol}://${host}/form.html?data=${final_param}`;
+	const final_params = utils.encrypt(params);
+	const url = `${protocol}://${host}/form.html?data=${final_params}`;
 	res.status(200).send({
 		form_url: url
 	});
@@ -543,12 +539,7 @@ app.post("/api/submit_form", async (req, res) => {
 	const data = req.body;
 	const undec_data = data.data;
 
-	const decipher = crypto.createDecipheriv(process.env.ALGO, process.env.SECRET, Buffer.from(IV, "hex"));
-	const dec = Buffer.concat([
-		decipher.update(Buffer.from(undec_data, "hex")),
-		decipher.final()
-	]);
-	const actual_params = dec.toString();
+	const actual_params = utils.decrypt(undec_data);
 
 	const params = new URLSearchParams(actual_params);
 	const {order_id, channel, shop_id} = params;
