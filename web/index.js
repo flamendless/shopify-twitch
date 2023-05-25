@@ -4,7 +4,6 @@ import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
 import cors from "cors";
-import crypto from "crypto";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
@@ -30,7 +29,6 @@ const STATIC_PATH = process.env.NODE_ENV === "production"
 const app = express();
 const __dirname = resolve(dirname(""));
 var sessionToken = null
-const IV = crypto.randomBytes(32);
 
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -496,26 +494,27 @@ app.post("/api/set_winner", async (req, res) => {
 app.post("/api/get_form", async (req, res) => {
 	const {access_token,checkout_token,shop} = req.body;
 
-	// await axios({
-	// 	method: "GET",
-	// 	url: `https://id.twitch.tv/oauth2/validate`,
-    //     headers: {
-    //         'Authorization': 'OAuth '+access_token,
-    //     }
-	// }).then(async function (response){
-	// 	console.log("validating winner");
-	// 	//get user
-	// 	user = response.data.login
-	// }).catch(async function(error){
-	// 	console.log(error)
-	// 	res.status(400).send(error)
-	// })
+	let user = null
+	await axios({
+		method: "GET",
+		url: `https://id.twitch.tv/oauth2/validate`,
+        headers: {
+            'Authorization': 'OAuth '+access_token,
+        }
+	}).then(async function (response){
+		console.log("validating winner");
+		//get user
+		user = response.data.login
+	}).catch(async function(error){
+		console.log(error)
+		res.status(400).send(error)
+	})
 
 	//get orderid,channel and shopid for winner by username
 	const data_set = await new Promise((resolve, reject) => {
 		DB.get(
-			"SELECT * FROM winner WHERE checkout_token = ?",
-			[checkout_token],
+			"SELECT * FROM winner WHERE checkout_token = ? AND user = ?",
+			[checkout_token, user],
 			(err, row) => {
 				if (err)
 				{
@@ -534,14 +533,9 @@ app.post("/api/get_form", async (req, res) => {
 
 	const protocol = req.protocol;
 	const host = req.get("host");
-
-	const params = `order_id=${data_set.order_id}&channel=${data_set.channel}&shop_id=${data_set.shop_id}&shop=${shop}&host=${host}`;
-	// const cipher = crypto.createCipheriv(process.env.ALGO || "aes-256-ctr", process.env.SECRET || "FLAMWITS@SHOPIFYTWITCH?!", IV);
-	// const enc = Buffer.concat([cipher.update(params), cipher.final()]);
-	// const final_param = enc.toString("hex");
-
-	// const url = `${protocol}://${host}/form.html?data=${final_param}`;
-	const url = `${protocol}://${host}/form.html?data=${encodeURIComponent(params)}`;
+	const params = `order_id=${data_set.order_id}&channel=${data_set.channel}&shop_id=${data_set.shop_id}&access_token=${access_token}&shop=${shop}&host=${host}`;
+	const final_params = utils.encrypt(params);
+	const url = `${protocol}://${host}/form.html?data=${final_params}`;
 	res.status(200).send({
 		form_url: url
 	});
@@ -549,14 +543,9 @@ app.post("/api/get_form", async (req, res) => {
 
 app.post("/api/submit_form", async (req, res) => {
 	const data = req.body;
-	// const undec_data = data.data;
+	const undec_data = data.data;
 
-	// const decipher = crypto.createDecipheriv(process.env.ALGO, process.env.SECRET, Buffer.from(IV, "hex"));
-	// const dec = Buffer.concat([
-	// 	decipher.update(Buffer.from(undec_data, "hex")),
-	// 	decipher.final()
-	// ]);
-	// const actual_params = dec.toString();
+	const actual_params = utils.decrypt(undec_data);
 
 	const params = new URLSearchParams(data.data);
 	// console.log(params)
