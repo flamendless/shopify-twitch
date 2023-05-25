@@ -66,9 +66,10 @@ class Utils
 
 	static async get_session_from_db(shop_id)
 	{
+		console.log(shop_id)
 		const row = await new Promise((resolve, reject) => {
 			DB.get(
-				"SELECT * from shopify_sessions WHERE id = ?",
+				"SELECT shop from shopify_sessions WHERE id = ?",
 				[shop_id],
 				(err, row) => {
 					if (err)
@@ -80,18 +81,18 @@ class Utils
 				}
 			)
 		});
-
-		const session_data = {
-			id: shop_id,
-			shop: row.shop,
-			state: row.state,
-			isOnline: row.isOnline == 1 ? true : false,
-			scope: row.scope,
-			accessToken: row.accessToken,
-		};
+		const {shop} = row
+		// const session_data = {
+		// 	id: shop_id,
+		// 	shop: row.shop,
+		// 	state: row.state,
+		// 	isOnline: row.isOnline == 1 ? true : false,
+		// 	scope: row.scope,
+		// 	accessToken: row.accessToken,
+		// };
 
 		// const session = new Session(session_data);
-		const session = this.get_session_from_shop(row.shop);
+		const session = this.get_session_from_shop(shop);
 		// const session_id = shopify.api.session.getOfflineId(row.shop);
 		// const session = await shopify.config.sessionStorage.loadSession(session_id);
 		return session

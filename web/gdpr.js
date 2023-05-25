@@ -171,7 +171,7 @@ export default {
 					channel: channel,
 				}
 			});
-			console.log("res", res);
+			// console.log("res", res);
 		}
 	},
 };

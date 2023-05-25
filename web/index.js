@@ -50,6 +50,7 @@ const skip_routes = [
 	"twitch_setup",
 	"twitch_auth",
 	"get_form",
+	"set_winner",
 ]
 
 async function add_custom_button(req, res)
@@ -184,7 +185,7 @@ app.post("/api/twitch_setup", async (req, res) => {
 
 	// const sessionToken = res.locals.shopify.session;
 	const session_token = await utils.get_session_from_db_by_name(store);
-	console.log(session_token?.accessToken)
+	console.log("session token"+session_token?.accessToken)
 	try {
 
 		const host = req.get("host");
@@ -447,7 +448,7 @@ app.post("/api/set_winner", async (req, res) => {
 		)
 	});
 
-	if ((!status) || (status == "CLAIMED"))
+	if ((status == "CLAIMED"))
 	{
 		res.status(400).send({message: "This has been already claimed"});
 		return
@@ -459,20 +460,21 @@ app.post("/api/set_winner", async (req, res) => {
 			DB.run(
 				"INSERT INTO winner (checkout_token, channel, username, status, order_id, shop_id) VALUES(?, ?, ?, ?, ?, ?)",
 				[checkout_token, channel, username, "UNCLAIMED", order_id, shop_id],
-				(err, row) => {
+				(err) => {
 					if (err)
 					{
 						console.log(err);
 						DB.run("ROLLBACK");
 						reject();
 					}
-					resolve(row);
+					resolve(true);
 				}
 			);
 			DB.run("COMMIT");
 		})
 	});
 
+	console.log("success"+success)
 	if (!success)
 	{
 		res.status(500).send({
@@ -490,10 +492,9 @@ app.post("/api/set_winner", async (req, res) => {
 })
 
 app.post("/api/get_form", async (req, res) => {
-	// const {order_id, channel, shop_id, access_token} = req.body;
-	const {access_token} = req.body;
+	const {access_token,checkout_token,shop} = req.body;
 
-	let user
+	let user = null
 	await axios({
 		method: "GET",
 		url: `https://id.twitch.tv/oauth2/validate`,
@@ -510,10 +511,10 @@ app.post("/api/get_form", async (req, res) => {
 	})
 
 	//get orderid,channel and shopid for winner by username
-	const row_data = await new Promise((resolve, reject) => {
+	const data_set = await new Promise((resolve, reject) => {
 		DB.get(
-			"SELECT * FROM winner WHERE username = ?",
-			[user],
+			"SELECT * FROM winner WHERE checkout_token = ? AND user = ?",
+			[checkout_token, user],
 			(err, row) => {
 				if (err)
 				{
@@ -525,9 +526,14 @@ app.post("/api/get_form", async (req, res) => {
 		)
 	});
 
+	//////////////////////////////////////////////// 
+
+	
+	
+
 	const protocol = req.protocol;
 	const host = req.get("host");
-	const params = `order_id=${row_data.order_id}&channel=${row_data.channel}&shop_id=${row_data.shop_id}&access_token=${access_token}`;
+	const params = `order_id=${data_set.order_id}&channel=${data_set.channel}&shop_id=${data_set.shop_id}&access_token=${access_token}&shop=${shop}&host=${host}`;
 	const final_params = utils.encrypt(params);
 	const url = `${protocol}://${host}/form.html?data=${final_params}`;
 	res.status(200).send({
@@ -541,8 +547,12 @@ app.post("/api/submit_form", async (req, res) => {
 
 	const actual_params = utils.decrypt(undec_data);
 
-	const params = new URLSearchParams(actual_params);
-	const {order_id, channel, shop_id} = params;
+	const params = new URLSearchParams(data.data);
+	// console.log(params)
+	// const {order_id, channel, shop_id} = params;
+	const order_id = params.get("order_id")
+	const channel = params.get("channel")
+	const shop_id = params.get("shop_id")
 
 	const row_data = await new Promise((resolve, reject) => {
 		DB.get(
@@ -561,14 +571,14 @@ app.post("/api/submit_form", async (req, res) => {
 					reject("Already claimed");
 				}
 
-				resolve(row);
+				resolve(true);
 			}
 		)
 	});
 
 	if (!row_data)
 	{
-		res.status(500).send({message: row_data})
+		res.status(500).send({message: "checkout"+row_data})
 		return
 	}
 
@@ -582,6 +592,8 @@ app.post("/api/submit_form", async (req, res) => {
 		res.status(400).send({message: "Invalid order id"});
 		return
 	}
+
+	console.log("data"+data.address)
 	order.shipping_address = {
 		address1: data.address,
 		address2: data.apartment,
@@ -594,13 +606,28 @@ app.post("/api/submit_form", async (req, res) => {
 		zip: data.postal_code,
 	}
 
+	const update = await new Promise((resolve, reject) => {
+		DB.run(
+			"UPDATE checkout SET status = ? WHERE order_id = ? AND channel = ?;",
+			["CLAIMED"],
+			(err) => {
+				if (!err)
+					resolve(true);
+
+				console.log(err);
+				reject(err);
+			}
+		)
+	});
+
 	try
 	{
 		await order.save({update: true});
 		res.status(200).send({message: "success"});
 	}
-	catch
+	catch(e)
 	{
+		console.log(e)
 		res.status(500).send({message: "error with updating shipping address"});
 	}
 });

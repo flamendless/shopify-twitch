@@ -109,8 +109,11 @@
           region: document.getElementById("region").value,
         }
 
+        const shop = new URLSearchParams(data).get("shop")
+        const host = new URLSearchParams(data).get("host")
+
         const xhr = new XMLHttpRequest()
-        xhr.open("POST", "/api/submit_form")
+        xhr.open("POST", `/api/submit_form?shop=${shop}&host=${host}`)
         xhr.setRequestHeader("Content-Type", "application/json")
         xhr.onreadystatechange = () => {
           if (xhr.readyState === 4 && xhr.status === 200) {
