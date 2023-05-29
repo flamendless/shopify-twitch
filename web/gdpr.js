@@ -13,6 +13,7 @@ export default {
 		callbackUrl: "/api/webhooks",
 		callback: async (topic, shop, body, webhook_id) => {
 			// const payload = JSON.parse(body);
+			return 200;
 		},
 	},
 
@@ -21,6 +22,7 @@ export default {
 		callbackUrl: "/api/webhooks",
 		callback: async (topic, shop, body, webhook_id) => {
 			// const payload = JSON.parse(body);
+			return 200;
 		},
 	},
 
@@ -29,17 +31,8 @@ export default {
 		callbackUrl: "/api/webhooks",
 		callback: async (topic, shop, body, webhook_id) => {
 			// const payload = JSON.parse(body);
+			return 200;
 		},
-	},
-
-	ORDERS_CREATE: {
-		deliveryMethod: DeliveryMethod.Http,
-		callbackUrl: "/api/webhooks",
-		callback: async (topic, shop, body, webhook_id) => {
-			// log_topic(topic);
-			// const payload = JSON.parse(body);
-			// console.log(payload);
-		}
 	},
 
 	ORDERS_PAID: {
@@ -74,7 +67,7 @@ export default {
 			});
 
 			if (!valid)
-				return
+				return 200;
 
 			console.log("inserting")
 			DB.run(
@@ -82,7 +75,7 @@ export default {
 				[webhook_id],
 				(err) => {
 					if (!err)
-						return
+						return 200;
 					console.log(err);
 				}
 			);
@@ -106,7 +99,7 @@ export default {
 
 			if (!data){
 				console.log("no data")
-				return
+				return 200;
 			}
 
 			const {shop_id, gifter, variant_id, status, channel} = data;
@@ -114,7 +107,7 @@ export default {
 			if (status != "NEW")
 			{
 				console.log(`${token} was already claimed`);
-				return
+				return 200;
 			}
 
 			const order_id = payload.id;
@@ -123,7 +116,7 @@ export default {
 				[order_id, "PAID", token],
 				(err) => {
 					if (!err)
-						return
+						return 200;
 					console.log(err);
 				}
 			);
