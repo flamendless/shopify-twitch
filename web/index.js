@@ -14,6 +14,7 @@ import utils from "./utils.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 
+
 import axios from "axios";
 import { channel } from "diagnostics_channel";
 import { createUnzip } from "zlib";
@@ -363,6 +364,7 @@ app.post("/api/gift", async (req, res) => {
 		const checkout = await utils.create_checkout(session, variant.id);
 		const shop_id = session.id;
 		const channel = twitch_data.channel;
+		
 		DB.run(
 			"INSERT INTO checkout (token, shop_id, gifter, variant_id, status, channel) VALUES(?, ?, ?, ?, ?, ?)",
 			[checkout.token, shop_id, gifter, variant.id, "NEW", channel],
@@ -373,6 +375,8 @@ app.post("/api/gift", async (req, res) => {
 				res.status(400).send(err);
 			}
 		);
+
+		console.log("getting gift v2")
 
 		res.status(200).send({
 			shop_id: shop_id,
@@ -453,7 +457,8 @@ app.post("/api/set_winner", async (req, res) => {
 		res.status(400).send({message: "This has been already claimed"});
 		return
 	}
-
+	
+	console.log("setting winner")
 	const success = await new Promise((resolve, reject) => {
 		DB.serialize(() => {
 			DB.run("BEGIN TRANSACTION");
@@ -511,9 +516,11 @@ app.post("/api/get_form", async (req, res) => {
 	})
 
 	//get orderid,channel and shopid for winner by username
+	console.log("user:"+user)
+	console.log("checkouttoken:"+checkout_token)
 	const data_set = await new Promise((resolve, reject) => {
 		DB.get(
-			"SELECT * FROM winner WHERE checkout_token = ? AND user = ?",
+			"SELECT * FROM winner WHERE checkout_token = ? AND username = ?",
 			[checkout_token, user],
 			(err, row) => {
 				if (err)
@@ -544,15 +551,20 @@ app.post("/api/get_form", async (req, res) => {
 app.post("/api/submit_form", async (req, res) => {
 	const data = req.body;
 	const undec_data = data.data;
+	console.log("submit form post")
+	console.log(data.data)
+	console.log("unec")
+	console.log(undec_data)
 
 	const actual_params = utils.decrypt(undec_data);
 
-	const params = new URLSearchParams(data.data);
-	// console.log(params)
+	// const params = new URLSearchParams(data.data);
+	const params = new URLSearchParams(actual_params);
+	console.log(params)
 	// const {order_id, channel, shop_id} = params;
 	const order_id = params.get("order_id")
 	const channel = params.get("channel")
-	const shop_id = params.get("shop_id")
+	const shop_id = req.query.shop_id
 
 	const row_data = await new Promise((resolve, reject) => {
 		DB.get(
