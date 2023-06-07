@@ -498,9 +498,9 @@ app.post("/api/get_form", async (req, res) => {
 	await axios({
 		method: "GET",
 		url: `https://id.twitch.tv/oauth2/validate`,
-        headers: {
-            'Authorization': 'OAuth '+access_token,
-        }
+		headers: {
+			'Authorization': 'OAuth '+access_token,
+		}
 	}).then(async function (response){
 		console.log("validating winner");
 		//get user
@@ -526,16 +526,12 @@ app.post("/api/get_form", async (req, res) => {
 		)
 	});
 
-	//////////////////////////////////////////////// 
-
-	
-	
 
 	const protocol = req.protocol;
 	const host = req.get("host");
-	const params = `order_id=${data_set.order_id}&channel=${data_set.channel}&shop_id=${data_set.shop_id}&access_token=${access_token}&shop=${shop}&host=${host}`;
+	const params = `order_id=${data_set.order_id}&channel=${data_set.channel}&shop_id=${data_set.shop_id}`;
 	const final_params = utils.encrypt(params);
-	const url = `${protocol}://${host}/form.html?data=${final_params}`;
+	const url = `${protocol}://${host}/form.html?data=${final_params}&shop=${shop}&host=${host}`;
 	res.status(200).send({
 		form_url: url
 	});
