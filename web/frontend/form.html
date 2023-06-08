@@ -85,7 +85,7 @@
       const params = new URLSearchParams(query);
 
       const data = params.get("data");
-      const shop = params.get("shop");
+      const shop = params.get("shop_id");
       const host = params.get("host");
       if ((!data) || (!shop) || (!host))
       {
@@ -113,7 +113,7 @@
         }
 
         const xhr = new XMLHttpRequest()
-        xhr.open("POST", `/api/submit_form?shop=${shop}&host=${host}`)
+        xhr.open("POST", `/api/submit_form?shop_id=${shop}&host=${host}`)
         xhr.setRequestHeader("Content-Type", "application/json")
         xhr.onreadystatechange = () => {
           if (xhr.readyState === 4 && xhr.status === 200) {
