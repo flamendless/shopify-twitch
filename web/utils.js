@@ -3,9 +3,10 @@ import crypto from "crypto";
 import shopify from "./shopify.js";
 import DB from "./db.js";
 
+const IV = crypto.randomBytes(16);
+
 class Utils
 {
-	static IV = crypto.randomBytes(16);
 
 	static async get_variant(session, variant_id)
 	{
@@ -135,10 +136,11 @@ class Utils
 
 	static encrypt(str)
 	{
+		const iv = IV.toString("hex").slice(0, 16);
 		const cipher = crypto.createCipheriv(
 			process.env.ALGO,
 			process.env.SECRET,
-			Utils.IV,
+			iv,
 		);
 		const enc = Buffer.concat([cipher.update(str), cipher.final()]);
 		const str_enc = enc.toString("hex");
@@ -147,10 +149,11 @@ class Utils
 
 	static decrypt(str)
 	{
+		const iv = IV.toString("hex").slice(0, 16);
 		const decipher = crypto.createDecipheriv(
 			process.env.ALGO,
 			process.env.SECRET,
-			Utils.IV,
+			iv,
 		);
 		const dec = Buffer.concat([
 			decipher.update(Buffer.from(str, "hex")),
