@@ -631,9 +631,8 @@ app.post("/api/submit_form", async (req, res) => {
 	try
 	{
 		await order.save({update: true});
-		const protocol = req.protocol;
 		const host = req.get("host");
-		const url = `${protocol}://${host}/thankyou.html`;
+		const url = `https://${host}/thankyou.html`;
 		res.redirect(url);
 	}
 	catch(e)
