@@ -562,6 +562,9 @@ app.post("/api/submit_form", async (req, res) => {
 	const channel = params.get("channel")
 	const shop_id = req.query.shop_id
 
+	console.log(shop_id)
+	// console.log(host)
+
 	const row_data = await new Promise((resolve, reject) => {
 		DB.get(
 			"SELECT order_id, status, channel FROM checkout WHERE order_id = ? AND channel = ?",
@@ -633,8 +636,9 @@ app.post("/api/submit_form", async (req, res) => {
 		await order.save({update: true});
 		const protocol = req.protocol;
 		const host = req.get("host");
-		const url = `${protocol}://${host}/thankyou.html`;
-		res.redirect(url);
+		const url = `${protocol}s://${host}/thankyou.html`;
+		console.log(url)
+		res.status(200).send(url)
 	}
 	catch(e)
 	{
