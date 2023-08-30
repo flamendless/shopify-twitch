@@ -562,6 +562,9 @@ app.post("/api/submit_form", async (req, res) => {
 	const channel = params.get("channel")
 	const shop_id = req.query.shop_id
 
+	console.log(shop_id)
+	// console.log(host)
+
 	const row_data = await new Promise((resolve, reject) => {
 		DB.get(
 			"SELECT order_id, status, channel FROM checkout WHERE order_id = ? AND channel = ?",

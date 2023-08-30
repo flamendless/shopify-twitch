@@ -85,7 +85,7 @@
       const params = new URLSearchParams(query);
 
       const data = params.get("data");
-      const shop = params.get("shop_id");
+      const shop = params.get("shop");
       const host = params.get("host");
       if ((!data) || (!shop) || (!host))
       {
@@ -117,8 +117,9 @@
         xhr.setRequestHeader("Content-Type", "application/json")
         xhr.onreadystatechange = () => {
           if (xhr.readyState === 4 && xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText)
-            console.log(response)
+            // const response = JSON.parse(xhr.responseText)
+            window.location=xhr.responseText
+            // console.log(response)
           }
         }
         xhr.send(JSON.stringify(formData))

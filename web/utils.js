@@ -70,7 +70,7 @@ class Utils
 		console.log(shop_id)
 		const row = await new Promise((resolve, reject) => {
 			DB.get(
-				"SELECT shop from shopify_sessions WHERE id = ?",
+				"SELECT shop from shopify_sessions WHERE shop = ?",
 				[shop_id],
 				(err, row) => {
 					if (err)
